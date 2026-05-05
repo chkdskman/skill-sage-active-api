@@ -5,6 +5,11 @@
   "author": {
     "name": "Oscar Macia"
   },
+  "homepage": "https://github.com/chkdskman/skill-sage-active-api",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/chkdskman/skill-sage-active-api.git"
+  },
   "license": "MIT",
   "keywords": ["sage", "sage-active", "graphql", "api", "erp", "accounting", "invoicing"]
 }

@@ -22,26 +22,33 @@ Customers, Suppliers, Employees, Products, Sales Quotes, Sales Orders, Sales Del
 
 ### Claude Code (Plugin)
 
-Claude Code supports plugins natively. Install from the repo URL:
+Claude Code installs plugins via marketplaces. This repo ships with its own single-plugin marketplace at `.claude-plugin/marketplace.json`, so you can install it in two commands from inside Claude Code:
 
-```bash
-claude plugin add https://github.com/chkdskman/skill-sage-active-api.git
+```text
+/plugin marketplace add chkdskman/skill-sage-active-api
+/plugin install sage-active-api@skill-sage-active-api
 ```
 
-Or install from a local clone:
+After install, the skill triggers automatically when you mention "Sage Active", "sage api", "sage graphql", or any Sage Active entity name.
+
+To pin a specific branch or tag, append `@<ref>` to the marketplace add command:
+
+```text
+/plugin marketplace add chkdskman/skill-sage-active-api@main
+```
+
+Local development / testing without installing — clone the repo and load it directly with `--plugin-dir`:
 
 ```bash
 git clone https://github.com/chkdskman/skill-sage-active-api.git
-claude plugin add ./skill-sage-active-api
+claude --plugin-dir ./skill-sage-active-api
 ```
-
-The skill triggers automatically when you mention "Sage Active", "sage api", "sage graphql", or any Sage Active entity name.
 
 ### Cursor (Project Rules)
 
-Cursor uses `.cursor/rules/` files to give context to the AI. To install:
+Cursor uses `.cursor/rules/*.mdc` files (Project Rules) to give context to the AI. The `.md` files in this repo are NOT auto-indexed if you copy them into `.cursor/rules/` — Cursor only loads `.mdc` rule files. The pattern below uses one `.mdc` rule that points at the cloned reference docs:
 
-1. Clone the repo into your project (or as a submodule):
+1. Clone the repo into your project (or add it as a submodule):
 
 ```bash
 git clone https://github.com/chkdskman/skill-sage-active-api.git .cursor/sage-active
@@ -51,7 +58,7 @@ git clone https://github.com/chkdskman/skill-sage-active-api.git .cursor/sage-ac
 
 ```markdown
 ---
-description: Sage Active Public API V2 (GraphQL) reference — authentication, entities, fields, legislation rules (FR/ES/DE)
+description: Sage Active Public API V2 (GraphQL) reference. Use when generating, debugging, or reviewing GraphQL queries/mutations against Sage Active, working with Sage Active entities (customers, suppliers, employees, products, sales/purchase documents, accounting), or implementing OAuth2 with Sage Active. Covers FR/ES/DE legislation rules.
 globs:
 alwaysApply: false
 ---
@@ -73,13 +80,17 @@ Key files:
 Read the relevant reference file before generating Sage Active API code.
 ```
 
-3. In Cursor, the rule will appear in settings. Enable it for your project.
+This is an "Agent Requested" rule (`alwaysApply: false`, no `globs`): the agent decides when to load it based on the `description`, so keep that line specific.
 
-> **Alternative (simpler):** Copy the `skills/sage-active-api/` folder directly into `.cursor/rules/sage-active-api/` and Cursor will index the content automatically.
+3. (Optional) Add `.cursor/sage-active/` to `.cursorindexignore` so the raw `.md` files do not get double-indexed alongside the rule.
 
-### OpenAI Codex / ChatGPT (AGENTS.md)
+4. In Cursor, the rule appears in **Settings → Rules**. Enable it for your project.
 
-Codex uses an `AGENTS.md` file at the root of the repository for custom instructions.
+> **Tip:** As an alternative to cloning, you can register the public docs URL with Cursor's **@Docs** feature (Settings → Features → Docs) and reference Sage Active docs via `@Docs` in chat.
+
+### OpenAI Codex (AGENTS.md)
+
+Codex follows the [AGENTS.md](https://agents.md/) open standard. Place an `AGENTS.md` at the root of your project and Codex will read it automatically.
 
 1. Clone the repo into your project:
 
@@ -109,7 +120,19 @@ Authentication: OAuth2 (see references/00-endpoints-auth.md)
 Rate limit: 3000 requests/app/minute
 ```
 
-> **Tip:** For ChatGPT custom GPTs, you can upload the `skills/sage-active-api/` folder as knowledge files.
+> **Cross-project (global):** to make Sage Active docs available in every project, drop the same instructions into `~/.codex/AGENTS.md`. Codex merges global and project instructions.
+>
+> **Per-subdirectory override:** if only one part of a monorepo touches Sage Active (e.g. `services/billing/`), put the instructions in `services/billing/AGENTS.md` instead of the project root.
+
+### ChatGPT custom GPTs
+
+Upload the `skills/sage-active-api/` folder contents as **Knowledge** files when configuring a custom GPT. Note the OpenAI limits:
+
+- **Max 20 files** per GPT as Knowledge
+- **512 MB per file**, up to **2M tokens per text file**
+- Storage caps: 25 GB per user, 100 GB per organization
+
+This repo has 21 markdown files (1 `SKILL.md` + 20 references), which is over the 20-file limit. Either drop one of the lower-priority references (e.g. merge `19-update-patterns.md` into `01-graphql-patterns.md`) or concatenate related references into a single file before uploading.
 
 ### Generic (any AI assistant)
 

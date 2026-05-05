@@ -1,0 +1,24 @@
+{
+  "name": "skill-sage-active-api",
+  "owner": {
+    "name": "Oscar Macia"
+  },
+  "description": "Sage Active Public API V2 (GraphQL) reference — single-plugin marketplace.",
+  "plugins": [
+    {
+      "name": "sage-active-api",
+      "source": "./",
+      "description": "Complete reference for Sage Active Public API V2 (GraphQL). OAuth2 auth, entity references with all fields and business rules, GraphQL patterns, and legislation-specific rules (FR/ES/DE).",
+      "version": "1.0.0",
+      "author": {
+        "name": "Oscar Macia"
+      },
+      "homepage": "https://github.com/chkdskman/skill-sage-active-api",
+      "repository": "https://github.com/chkdskman/skill-sage-active-api",
+      "license": "MIT",
+      "category": "documentation",
+      "tags": ["sage", "sage-active", "graphql", "api", "erp", "accounting", "invoicing", "oauth2"],
+      "keywords": ["sage", "sage-active", "graphql", "api", "erp", "accounting", "invoicing"]
+    }
+  ]
+}
