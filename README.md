@@ -1,7 +1,30 @@
 # Sage Active API — Skill / Plugin for AI Coding Assistants
 
 Complete reference for **Sage Active Public API V2** (GraphQL, built with Hot Chocolate).
-Works with **Claude Code**, **Cursor**, and **OpenAI Codex / ChatGPT**.
+Works with **Claude Code**, **Cursor**, and **OpenAI Codex**.
+
+## Who is this for?
+
+Developers building applications, integrations, or internal tools **on top of Sage Active**. The plugin loads the full GraphQL API V2 reference into your AI coding agent so you don't have to paste docs into every prompt — your agent already knows the entities, the fields, the OAuth flows, and the per-country quirks.
+
+It is **not** for end users of Sage Active itself. If you only want to use the product, you don't need any of this.
+
+## Before you install
+
+The plugin teaches your agent *how* to call the API. To actually call it you'll need a few things from Sage first — none of this is optional, and none of it is something the agent can do for you:
+
+1. **A Sage Active subscription** in FR, ES, or DE. You need one per country you plan to target.
+2. **Developer access.** From *Your Sage Active*, request access to the **Developer Center**. Sage links the developer account to the email on your subscription.
+3. **Register your company** in the Developer Center (one-time).
+4. **Create an application** and associate it with *Sage Active Public API V2*. You'll get three credentials, all required to call the API:
+   - **Client ID**
+   - **Client Secret** (renewable from the Developer Center)
+   - **Subscription Key** (primary + secondary, so you can rotate without downtime)
+5. Pick your **OAuth2 flow** — web server, mobile/PKCE, or SPA. The skill walks your agent through each.
+
+Full official walkthrough: <https://developer.sage.com/sageactive/quickstart/>
+
+Don't have a subscription yet? The Sage Active site has the sign-up flow per country.
 
 ## What this plugin provides
 
@@ -19,6 +42,8 @@ Customers, Suppliers, Employees, Products, Sales Quotes, Sales Orders, Sales Del
 ---
 
 ## Installation
+
+> ☕ **The "I'm holding a coffee" install:** paste this repo's URL into your coding agent (Claude Code, Codex, Cursor — pick your fighter 🥊) and say *"install this as a skill"*. It'll figure out the rest. The instructions below are for when you want to pin a version, install offline, or — wild idea — actually understand what your robot is about to do.
 
 ### Claude Code (Plugin)
 
@@ -46,12 +71,12 @@ claude --plugin-dir ./skill-sage-active-api
 
 ### Cursor (Project Rules)
 
-Cursor uses `.cursor/rules/*.mdc` files (Project Rules) to give context to the AI. The `.md` files in this repo are NOT auto-indexed if you copy them into `.cursor/rules/` — Cursor only loads `.mdc` rule files. The pattern below uses one `.mdc` rule that points at the cloned reference docs:
+Modern Cursor uses `.cursor/rules/*.mdc` files (Project Rules) to give scoped context to Agent and Inline Edit. Do not use the legacy `.cursorrules` format for new installs. The pattern below keeps the Sage Active docs as normal project documentation and adds one Agent Requested rule that attaches the skill entry point when relevant.
 
 1. Clone the repo into your project (or add it as a submodule):
 
 ```bash
-git clone https://github.com/chkdskman/skill-sage-active-api.git .cursor/sage-active
+git clone https://github.com/chkdskman/skill-sage-active-api.git docs/sage-active
 ```
 
 2. Create a rule file `.cursor/rules/sage-active.mdc`:
@@ -63,7 +88,11 @@ globs:
 alwaysApply: false
 ---
 
-When working with Sage Active API, use the reference documentation in `.cursor/sage-active/skills/sage-active-api/`.
+When working with Sage Active API, first read the skill entry point:
+
+@docs/sage-active/skills/sage-active-api/SKILL.md
+
+Then read the relevant reference file from `docs/sage-active/skills/sage-active-api/references/` before generating Sage Active API code.
 
 Key files:
 - `SKILL.md` — Overview, endpoints, entity quick reference, core patterns
@@ -76,21 +105,31 @@ Key files:
 - `references/17-aggregations-lists.md` — Reporting
 - `references/18-legislation-rules.md` — Consolidated FR/ES/DE rules
 - `references/19-update-patterns.md` — Update patterns (requestedAction, replaceAll)
-
-Read the relevant reference file before generating Sage Active API code.
 ```
 
-This is an "Agent Requested" rule (`alwaysApply: false`, no `globs`): the agent decides when to load it based on the `description`, so keep that line specific.
+This is an "Agent Requested" rule (`alwaysApply: false`, no `globs`): Cursor makes it available to the agent, and the agent decides whether to include it based on the `description`.
 
-3. (Optional) Add `.cursor/sage-active/` to `.cursorindexignore` so the raw `.md` files do not get double-indexed alongside the rule.
+3. In Cursor, the rule appears in **Cursor Settings → Rules** and in the Agent sidebar when active.
 
-4. In Cursor, the rule appears in **Settings → Rules**. Enable it for your project.
+> **Tip:** Cursor also supports root-level `AGENTS.md` as a simple alternative to Project Rules, but `.cursor/rules/*.mdc` is better here because the rule can be Agent Requested instead of always applied to the whole project.
 
-> **Tip:** As an alternative to cloning, you can register the public docs URL with Cursor's **@Docs** feature (Settings → Features → Docs) and reference Sage Active docs via `@Docs` in chat.
+### OpenAI Codex (Skill)
 
-### OpenAI Codex (AGENTS.md)
+Codex can install this repo directly as a skill from the `skills/sage-active-api/` folder:
+
+```text
+$skill-installer install https://github.com/chkdskman/skill-sage-active-api/tree/main/skills/sage-active-api
+```
+
+After installing, restart Codex so the new skill is picked up. The skill triggers automatically when you mention "Sage Active", "sage api", "sage graphql", or a Sage Active entity name.
+
+Manual install is also possible: copy `skills/sage-active-api/` into `~/.codex/skills/sage-active-api/`, then restart Codex.
+
+### OpenAI Codex (AGENTS.md alternative)
 
 Codex follows the [AGENTS.md](https://agents.md/) open standard. Place an `AGENTS.md` at the root of your project and Codex will read it automatically.
+
+Use this option if you prefer project-local instructions instead of installing the skill globally.
 
 1. Clone the repo into your project:
 
@@ -123,16 +162,6 @@ Rate limit: 3000 requests/app/minute
 > **Cross-project (global):** to make Sage Active docs available in every project, drop the same instructions into `~/.codex/AGENTS.md`. Codex merges global and project instructions.
 >
 > **Per-subdirectory override:** if only one part of a monorepo touches Sage Active (e.g. `services/billing/`), put the instructions in `services/billing/AGENTS.md` instead of the project root.
-
-### ChatGPT custom GPTs
-
-Upload the `skills/sage-active-api/` folder contents as **Knowledge** files when configuring a custom GPT. Note the OpenAI limits:
-
-- **Max 20 files** per GPT as Knowledge
-- **512 MB per file**, up to **2M tokens per text file**
-- Storage caps: 25 GB per user, 100 GB per organization
-
-This repo has 21 markdown files (1 `SKILL.md` + 20 references), which is over the 20-file limit. Either drop one of the lower-priority references (e.g. merge `19-update-patterns.md` into `01-graphql-patterns.md`) or concatenate related references into a single file before uploading.
 
 ### Generic (any AI assistant)
 
