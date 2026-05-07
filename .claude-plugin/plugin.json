@@ -1,0 +1,10 @@
+{
+  "name": "sage-active-api",
+  "version": "1.0.0",
+  "description": "Complete reference for Sage Active Public API V2 (GraphQL). Provides OAuth2 authentication guides, complete entity references with all fields and business rules, GraphQL query patterns, and legislation-specific rules (FR, ES, DE) for building integrations with Sage Active.",
+  "author": {
+    "name": "Oscar Macia"
+  },
+  "license": "MIT",
+  "keywords": ["sage", "sage-active", "graphql", "api", "erp", "accounting", "invoicing"]
+}
