@@ -222,8 +222,8 @@ Represents the information about the currently authenticated user within the sys
 |-------|------|----------|-------|
 | id | UUID | System, Read-only | Id |
 | firstName | String | Read-only | User's first name |
-| lastName | String | Read-only | User's last name (COMING SOON) |
-| fullName | String | Read-only | User's full name (COMING SOON) |
+| lastName | String | Read-only | User's last name. 🚧 COMING SOON (announced ≤ 2026-03) |
+| fullName | String | Read-only | User's full name. 🚧 COMING SOON (announced ≤ 2026-03) |
 | applicationLanguageCode | String | Read-only | User's language (e.g. en-US) |
 | authenticationEmail | String | Read-only | User's email |
 
@@ -1091,6 +1091,301 @@ This section describes how banks are managed in Sage Active. It explains the rel
 - The id of a Bank Account is the same identifier as the underlying Payment Method.
 - Bank Accounts enrich Payment Methods with banking data retrieved from the bank, such as balances and synchronization status.
 - In other words: Payment Methods expose how a bank account is defined and used in Sage Active. Bank Accounts expose the same entity, augmented with live or synchronized banking information.
+
+---
+
+## Bank Movements
+
+> **Source:** <https://developer.sage.com/sageactive/resources/bankmovements>
+> Added in 2026-04 release.
+
+### HTTP Operations
+
+| HTTP | Operation | Type | Object |
+|------|-----------|------|--------|
+| POST | Read | Query | `bankMovements` filtered by id |
+| POST | List | Query | `bankMovements` |
+
+### Description
+
+Bank movements are operations imported from the bank, used for reconciliation with accounting. Each record combines data returned by the banking connection (amount, dates, reference, labels) with Sage Active processing state.
+
+**Scope:** the list only includes movements for bank accounts that are actually connected to their financial institution. Accounts without a live banking connection do not supply rows.
+
+**How to query:** restrict the list to a single bank account by passing a filter on `bankAccountId`. Only movements whose `bankAccountId` matches the given id are returned.
+
+### GraphQL Query Example
+
+```graphql
+query {
+  bankMovements(first: 50, where: { bankAccountId: { eq: "2c6e8a4e-0d1a-4f0b-9a3b-1e2d3c4b5a60" } }) {
+    edges {
+      node {
+        id
+        bankAccountId
+        linkStatus
+        linkStatusDate
+        dateFundsAvailable
+        datePosted
+        narrative1
+        referenceNumber
+        transactionAmount
+        transactionNarrative
+        transactionStatus
+        transactionType
+        linkedAccountingEntries { id accountingEntryId bankJournalTypeId date description documentNumber isClosed number status }
+        proposalItems { id bankAccountingEntryId bankBillOfExchangeId bankingRuleId itemAmount ponderationScore }
+        reconciledItems { id bankAccountingEntryId bankBillOfExchangeId bankingRuleId bankingRuleRejected linked originProposalItemId reconciledBy suggestedBy }
+      }
+    }
+  }
+}
+```
+
+### bankMovements Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID (system) | Unique identifier of the bank transaction |
+| bankAccountId | UUID | Bank account (payment method) the movement belongs to |
+| transactionAmount | Decimal | Transaction amount as reported by the bank |
+| datePosted | DateTime (date-only) | Value date or posting date from the bank |
+| dateFundsAvailable | DateTime (date-only) | Date from which funds are available (when provided by the bank) |
+| transactionNarrative | String | Main narrative or label for the operation |
+| narrative1 | String | Additional narrative from the bank |
+| referenceNumber | String | Bank reference (e.g. end-to-end or operation reference) |
+| transactionType | String | Type of operation as provided by the bank (provider-specific) |
+| transactionStatus | String | Status of the operation on the bank side (provider-specific) |
+| linkStatus | Enum | NOT_SPECIFIED, DISMISSED, IN_PROGRESS, LINKED, LINKED_WITH_VARIANCE, PENDING — state of the link between this movement and accounting |
+| linkStatusDate | DateTime (date-only) | When the current link status was last set |
+| linkedAccountingEntries[] | Array | Bank journal entries associated with this movement |
+| proposalItems[] | Array | Suggested matches (e.g. rules) pending validation |
+| reconciledItems[] | Array | Reconciled or rejected links between this movement and accounting or other documents |
+
+### bankMovements / linkedAccountingEntries
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID (system) | Identifier of the bank accounting entry line |
+| accountingEntryId | UUID | Related accounting entry |
+| bankJournalTypeId | UUID | Bank journal type |
+| date | DateTime (date-only) | Entry date |
+| number | Int | Line or sequence number |
+| documentNumber | String | Document number |
+| description | String | Description |
+| status | String | Status of the bank accounting entry |
+| isClosed | Boolean | Whether the entry is closed |
+
+### bankMovements / proposalItems
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID (system) | Identifier of the proposal item |
+| itemAmount | Decimal | Proposed amount for this match |
+| ponderationScore | Int | Internal score for ranking proposals |
+| bankAccountingEntryId | UUID | Target bank accounting entry, if any |
+| bankBillOfExchangeId | UUID | Target bill of exchange, if any |
+| bankingRule | BankingRule (DATALOADER) | Fields of BankingRule |
+| bankingRuleId | UUID | Id of BankingRule that generated this proposal |
+
+### bankMovements / reconciledItems
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID (system) | Identifier of the reconciled item |
+| linked | Boolean | Whether the item is currently linked |
+| bankingRuleRejected | Boolean | Whether a suggested banking rule was rejected |
+| bankingRule | BankingRule (DATALOADER) | Fields of BankingRule |
+| bankingRuleId | UUID | Id of related BankingRule, if any |
+| bankAccountingEntryId | UUID | Resulting or related accounting entry, if any |
+| bankBillOfExchangeId | UUID | Resulting or related bill of exchange |
+| originProposalItemId | UUID | Source proposal item when the reconciliation was confirmed from a proposal |
+| reconciledBy | String | Who or what applied the reconciliation (product-specific) |
+| suggestedBy | String | Who or what suggested the link (product-specific) |
+
+### Info
+
+- `linkStatus` indicates how far the movement is in the matching flow with accounting (e.g. not yet processed, in progress, linked). Use `localizedEnumValues` for translations.
+- `proposalItems` represent candidates that Sage Active suggests before you confirm reconciliation (often produced by banking rules).
+- `reconciledItems` represent outcomes (confirmed link, rejected banking rule, etc.), including optional references to an origin proposal.
+- `linkedAccountingEntries` are the bank-journal entries tied to this movement — not a replacement for the full `accountingEntries` list API.
+
+---
+
+## Banking Rules
+
+> **Source:** <https://developer.sage.com/sageactive/resources/bankingrules>
+> Added in 2026-04 release.
+
+### HTTP Operations
+
+| HTTP | Operation | Type | Object |
+|------|-----------|------|--------|
+| POST | Read | Query | `bankingRules` filtered by id |
+| POST | List | Query | `bankingRules` |
+
+### Description
+
+Banking rules drive how bank movements are matched, suggested, or posted to the chart of accounts and related documents. A rule can target a bank account, an accounting account, third parties, and other criteria; it carries scoring, status, and optional extended metadata.
+
+`bankingRuleId` is referenced from `bankMovements.proposalItems` and `bankMovements.reconciledItems` to identify which rule produced or affected a match.
+
+### bankingRules Fields
+
+**Identity:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID (system) | Unique identifier of the banking rule |
+| creationDate | DateTime (system) | Creation time |
+| modificationDate | DateTime (system) | Last modification time |
+
+**Targets:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| accountingAccountId | UUID | Default or target accounting account, when the rule uses one |
+| bankAccountId | UUID | Bank account the rule applies to, when set |
+| thirdPartyId | UUID | Linked third party, when the rule is scoped to one |
+| categoryId | UUID | Transaction category for classification, when set |
+
+**Configuration:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| action | Enum | NOT_SPECIFIED, CREATE_NON_INVOICE, CREATE_PURCHASE_INVOICE, CREATE_SALES_INVOICE, ONLY_MATCH — what the rule does when it matches |
+| kind | Enum | NOT_SPECIFIED, ALL_BANK_ACCOUNTS, ONE_BANK_ACCOUNT — whether the rule applies to one bank account, all, or is unspecified |
+| name | String | Name of the rule |
+| status | String | Status of the rule in the product |
+| defaultProposalRule | Boolean | When true, the rule is used for default proposal behaviour |
+| ponderationScore | Int | Base score used for proposal ranking (see `proposalItems` on bank movements) |
+| ruleApplied | Int | How the rule is applied (internal code) |
+| sourceType | Enum | ACCOUNTING, AP_AUTOMATION, BANK_SMART_AGENT, BANKING, E_INVOICING_AP_AUTOMATION, EMAIL_AP_AUTOMATION, FIXED_ASSETS, GLOBAL, IMPORT_FILES, INTEGRATION_API, ONLINE_PAYMENTS, PUBLIC_API, PUBLIC_API_AP_AUTOMATION, SAGE_DE_PAYROLL_CLOUD, SAGE_FR_PAYROLL_CLOUD, SAGE_MOBILE_APP_AP_AUTOMATION, SALES, SCHEDULER_SERVICE, YEAR_END_PROCESS, YEAR_END_PROCESS_PREVIEW — where the rule originates from |
+| suggestionsProvided | Int | Number of suggestions associated with the rule (default 0) |
+| createdByDefault | Boolean | Whether the record was created by the system as a default |
+| disabled | Boolean | When true, the rule is disabled |
+| disabledDate | DateTime (date-only) | Date the rule was disabled, when set |
+| description | String | User-visible description |
+| rationale | String | Rationale or comment for the rule |
+| createdBy | String | User or system that created the record |
+| updatedBy | String | User that last updated the record |
+
+---
+
+## Reconcile Bank Movement
+
+> **Source:** <https://developer.sage.com/sageactive/resources/reconcilebankmovement>
+> Added in 2026-04 release. Action (mutation, returns HTTP 200).
+
+### HTTP Operations
+
+| HTTP | Operation | Type | Object | DTO |
+|------|-----------|------|--------|-----|
+| POST | Other | ⚙️ Action (Mutation) | `reconcileBankMovement` | `ReconcileBankMovementGLDtoInput` |
+
+### GraphQL Mutation
+
+```graphql
+mutation ($input: ReconcileBankMovementGLDtoInput!) {
+  reconcileBankMovement(input: $input) {
+    id
+  }
+}
+```
+
+**Variables:**
+
+```json
+{
+  "input": {
+    "bankTransactionId": "11111111-1111-1111-1111-111111111111",
+    "bankingRuleId": null,
+    "accountingEntries": [
+      { "accountingEntryId": "22222222-2222-2222-2222-222222222222" },
+      { "accountingEntryId": "33333333-3333-3333-3333-333333333333" }
+    ]
+  }
+}
+```
+
+**Example response:**
+
+```json
+{ "data": { "reconcileBankMovement": { "id": "11111111-1111-1111-1111-111111111111" } } }
+```
+
+### Input Fields — `ReconcileBankMovementGLDtoInput`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bankTransactionId | UUID | Yes | Bank movement to reconcile (same entity as the `id` of the bank movement list) |
+| bankingRuleId | UUID | No | Optional. Rule to attach (e.g. one taken from the movement's `proposalItems`) |
+| accountingEntries[] | Array | Yes | At least one accounting line to link to the movement; each item references an accounting entry |
+
+**accountingEntries[] item:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| accountingEntryId | UUID | Yes | Accounting entry to reconcile with the bank movement |
+
+### Returned Type
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Identifier of the resource returned by the mutation (typically the bank transaction / movement) |
+
+---
+
+## Unreconcile Bank Movement
+
+> **Source:** <https://developer.sage.com/sageactive/resources/unreconcilebankmovement>
+> 🚧 **COMING SOON** — announced 2026-04. Documented; not yet live in production.
+
+### HTTP Operations
+
+| HTTP | Operation | Type | Object | DTO |
+|------|-----------|------|--------|-----|
+| POST | Other | ⚙️ Action (Mutation) | `unReconcileBankMovement` | `UnReconcileBankMovementGLDtoInput` |
+
+> Note: the mutation name uses a capital R (`unReconcileBankMovement`).
+
+### GraphQL Mutation
+
+```graphql
+mutation ($input: UnReconcileBankMovementGLDtoInput!) {
+  unReconcileBankMovement(input: $input) {
+    id
+  }
+}
+```
+
+**Variables:**
+
+```json
+{
+  "input": {
+    "bankTransactionId": "11111111-1111-1111-1111-111111111111"
+  }
+}
+```
+
+**Example response:**
+
+```json
+{ "data": { "unReconcileBankMovement": { "id": "11111111-1111-1111-1111-111111111111" } } }
+```
+
+### Input Fields — `UnReconcileBankMovementGLDtoInput`
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| bankTransactionId | UUID | Yes | Bank movement to unreconcile (same entity as the `id` of the bank movement list) |
+
+### Returned Type
+
+| Field | Type | Description |
+|-------|------|-------------|
+| id | UUID | Identifier of the resource returned by the mutation (typically the bank transaction / movement) |
 
 ---
 
@@ -2228,6 +2523,13 @@ query ($id: ID!) {
 | salesCreditNoteDefaultPresetTextId | UUID | - | Id of the default preset text for sales credit notes |
 | useSalesTracking | Boolean | - | Indicates if sales tracking is enabled |
 | useVATRatesForDOM | Boolean | - | Indicates if VAT rates for DOM are used |
+
+**Spain (simplified invoice) — read-only:**
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| askGenerateNonIdentifiedSalesInvoicesByDefault | Boolean | Read-only | 🚧 COMING SOON (announced 2026-04) — when true, simplified invoices are used for individual customers by default. ES only. |
+| nonIdentifiedSalesInvoiceMaxAmount | Decimal | Read-only | 🚧 COMING SOON (announced 2026-04) — warning limit for simplified invoice amounts. ES only. |
 
 **Posting Sales Invoices:**
 

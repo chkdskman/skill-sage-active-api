@@ -135,8 +135,8 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | customerId | UUID | Required, Non-modifiable | ID of the Customer entity. Not mandatory for Quote |
 | documentDate | DateTime | | Document Date (date only, time ignored) |
 | operationalNumber | String | | Document Number (max 50) |
-| operationalNumberPresetText | OperationalNumberPresetText | | DATALOADER - Fields of OperationalNumberPresetText (coming soon) |
-| operationalNumberPresetTextId | UUID | | ID of the operational number preset text (coming soon) |
+| operationalNumberPresetText | OperationalNumberPresetText | | DATALOADER — Fields of OperationalNumberPresetText. 🚧 COMING SOON (announced ≤ 2026-03) |
+| operationalNumberPresetTextId | UUID | | ID of the operational number preset text. 🚧 COMING SOON (announced ≤ 2026-03) |
 | status | String | | Pending, Closed, Posted, PartiallyCollected, Collected (max 15) |
 | socialName | String | Non-modifiable | Social Name (max 50) |
 | contactName | String | | Contact Name (max 50) |
@@ -205,6 +205,7 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | firstDueDate | DateTime | | The first due date for payment of the invoice (date only, time ignored) |
 | createdInSoftwareVersion | String | | Links an invoice to the software release version (max 10) |
 | openItems[] | Array | | Open Items |
+| printNameOnPdf | Boolean | | 🚧 COMING SOON (announced 2026-04) — Print the customer name on the simplified-invoice PDF for this document. ES only. Pre-fillable from `Customer.printNameOnPdf`. |
 | specialMention | String | | Free-text mention displayed on the final invoice (must be explicitly set via API) (max 1000) |
 | canGeneratePaymentLink | Boolean | | (NEW) Indicates whether the invoice should generate an online payment link |
 | invoiceEmail | String | | (NEW) Email address used when sending the invoice with the online payment link |

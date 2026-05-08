@@ -112,6 +112,21 @@ These fields appear on **all sales document types** (quotes, orders, delivery no
 | 10% | 1.4% |
 | 4% | 0.5% |
 
+### Simplified Invoices (Spain)
+
+> 🚧 **COMING SOON** — announced 2026-04 — [source](https://developer.sage.com/sageactive/?link=last)
+> The fields below are documented by Sage but not yet live in production. Track status in [CHANGELOG.md](../CHANGELOG.md) → *Open items*.
+
+For non-identified customers (Spanish "factura simplificada"), the customer can be omitted from the invoice. Fields are scattered across three resources:
+
+| Resource | Field | Type | Purpose |
+|----------|-------|------|---------|
+| `customers` | `nonIdentifiedCustomer` | Boolean | When true, sales invoices for this customer are simplified (no customer ID printed) |
+| `customers` | `printNameOnPdf` | Boolean | Default for "print customer name on simplified invoice" when creating a sales invoice for this customer |
+| `salesInvoices` | `printNameOnPdf` | Boolean | Per-document override of the customer-level default; controls whether the customer name appears on this invoice's PDF |
+| `organizationSalesSetupByOrgId` | `askGenerateNonIdentifiedSalesInvoicesByDefault` | Boolean (read-only) | Org-wide default: use simplified invoices for individual customers |
+| `organizationSalesSetupByOrgId` | `nonIdentifiedSalesInvoiceMaxAmount` | Decimal (read-only) | Warning threshold above which a simplified invoice triggers a warning |
+
 ---
 
 ## 4. Products

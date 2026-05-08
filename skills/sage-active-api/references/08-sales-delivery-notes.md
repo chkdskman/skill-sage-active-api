@@ -109,8 +109,8 @@ mutation ($values: SalesDeliveryNoteCreateGLDtoInput!) {
 | customerId | UUID | Yes (not modifiable after creation) | ID of the Customer entity. Not mandatory for Quote |
 | documentDate | DateTime | — | Document Date (only date value is considered, time is ignored) |
 | operationalNumber | String (50) | — | Document Number |
-| operationalNumberPresetText | OperationalNumberPresetText | — | Operational number preset text (DATALOADER, coming soon) |
-| operationalNumberPresetTextId | UUID | — | ID of the operational number preset text (coming soon) |
+| operationalNumberPresetText | OperationalNumberPresetText | — | DATALOADER — Operational number preset text. 🚧 COMING SOON (announced ≤ 2026-03) |
+| operationalNumberPresetTextId | UUID | — | ID of the operational number preset text. 🚧 COMING SOON (announced ≤ 2026-03) |
 | status | String (15) | — | Pending or Closed |
 | socialName | String (50) | Not modifiable after creation | Social Name |
 | contactName | String (50) | — | Contact Name |

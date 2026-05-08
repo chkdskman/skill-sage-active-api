@@ -95,7 +95,12 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | **Journal Types** | `journalTypes` | — | — | — | 15-reference-data.md |
 | **Accounting Exercises** | `accountingExercises` | — | — | — | 15-reference-data.md |
 | **Bank Accounts** | `bankAccounts` | — | — | — | 15-reference-data.md |
-| **Payment Means** | `paymentMeans` | — | — | — | 15-reference-data.md |
+| **Bank Movements** | `bankMovements` | — | — | — | 15-reference-data.md |
+| **Banking Rules** | `bankingRules` | — | — | — | 15-reference-data.md |
+| **Reconcile Bank Movement** | — | `reconcileBankMovement` (action) | — | — | 15-reference-data.md |
+| **Unreconcile Bank Movement** | — | `unReconcileBankMovement` (action, COMING SOON) | — | — | 15-reference-data.md |
+| **Payment Methods** | `paymentMethods` (legacy alias `paymentMeans`) | — | — | — | 15-reference-data.md |
+| **Operational Number Preset Texts** | `operationalNumberPresetTexts` | — | — | — | 15-reference-data.md |
 | **Payment Terms** | `paymentTerms` | — | — | — | 15-reference-data.md |
 | **Dimensions** | `dimensions` | — | — | — | 15-reference-data.md |
 | **File Upload** | — | `uploadFileToEntity` (action) | — | — | 16-file-management.md |
@@ -159,7 +164,7 @@ HTTP 200 with `errors[]` for business errors. HTTP 401 for auth. HTTP 429 for ra
 | `12-accounting-accounts.md` | Chart of accounts, plan master |
 | `13-accounting-entries.md` | Accounting entries (by codes & IDs), sessions |
 | `14-accounting-reports.md` | Trial balance, balance sheet, P&L, third party balance, KPIs |
-| `15-reference-data.md` | Organizations, users, countries, currencies, taxes, banks, config |
+| `15-reference-data.md` | Organizations, users, countries, currencies, taxes, banks, bank movements, banking rules, reconcile/unreconcile actions, payment methods, config |
 | `16-file-management.md` | File upload/download/export, AP automation |
 | `17-aggregations-lists.md` | Aggregation & List catalog/execute |
 | `18-legislation-rules.md` | Consolidated FR/ES/DE rules |
@@ -178,3 +183,11 @@ HTTP 200 with `errors[]` for business errors. HTTP 401 for auth. HTTP 429 for ra
 | Schema Viewer | https://developer.sage.com/sageactive/resources/schema |
 
 For any information not covered in these references, consult the live documentation at the URLs above.
+
+## Skill Versioning
+
+This skill is updated to track Sage's monthly releases. See [`CHANGELOG.md`](CHANGELOG.md) for what changed in each release and the **Open items** checklist of features still in COMING SOON state.
+
+**Current Sage release tracked:** 2026-04 ("Bank reconciliation documentation refresh and new Sales Invoices capabilities").
+
+When Sage ships a new release, follow the *"How to update this skill"* runbook at the top of `CHANGELOG.md`.
