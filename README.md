@@ -51,15 +51,17 @@ Claude Code installs plugins via marketplaces. This repo ships with its own sing
 
 ```text
 /plugin marketplace add chkdskman/skill-sage-active-api
-/plugin install sage-active-api@skill-sage-active-api
+/plugin install sage-active-api@chkdskman-skill-sage-active-api
 ```
+
+When you add a marketplace via GitHub shorthand (`owner/repo`), Claude Code references it as `owner-repo`. That's why the install command uses `@chkdskman-skill-sage-active-api`, not the `name` field declared inside `marketplace.json`.
 
 After install, the skill triggers automatically when you mention "Sage Active", "sage api", "sage graphql", or any Sage Active entity name.
 
-To pin a specific branch or tag, append `@<ref>` to the marketplace add command:
+To pin a specific branch or tag, use the full git URL with `#<ref>` — the GitHub shorthand does not accept refs:
 
 ```text
-/plugin marketplace add chkdskman/skill-sage-active-api@main
+/plugin marketplace add https://github.com/chkdskman/skill-sage-active-api.git#main
 ```
 
 Local development / testing without installing — clone the repo and load it directly with `--plugin-dir`:
@@ -69,49 +71,33 @@ git clone https://github.com/chkdskman/skill-sage-active-api.git
 claude --plugin-dir ./skill-sage-active-api
 ```
 
-### Cursor (Project Rules)
+### Cursor (Skill)
 
-Modern Cursor uses `.cursor/rules/*.mdc` files (Project Rules) to give scoped context to Agent and Inline Edit. Do not use the legacy `.cursorrules` format for new installs. The pattern below keeps the Sage Active docs as normal project documentation and adds one Agent Requested rule that attaches the skill entry point when relevant.
+Cursor 2.4 (January 2026) added native support for `SKILL.md`-based Agent Skills, the same format used by Claude Code. The skill in this repo works in Cursor without any modification — Cursor's agent picks it up automatically based on the skill's `description` frontmatter.
 
-1. Clone the repo into your project (or add it as a submodule):
+Skills can be installed at two scopes:
+
+- **Project**: `.cursor/skills/<skill-name>/` — only available in this repo
+- **Global**: `~/.cursor/skills/<skill-name>/` — available in every project on your machine
+
+Pick one and install:
 
 ```bash
-git clone https://github.com/chkdskman/skill-sage-active-api.git docs/sage-active
+# Clone the repo somewhere (e.g. ~/src)
+git clone https://github.com/chkdskman/skill-sage-active-api.git
+
+# Project-scoped install
+mkdir -p .cursor/skills
+cp -r skill-sage-active-api/skills/sage-active-api .cursor/skills/sage-active-api
+
+# OR global install (every project)
+mkdir -p ~/.cursor/skills
+cp -r skill-sage-active-api/skills/sage-active-api ~/.cursor/skills/sage-active-api
 ```
 
-2. Create a rule file `.cursor/rules/sage-active.mdc`:
+Then reload the Cursor workspace (Cmd/Ctrl+Shift+P → **Developer: Reload Window**). The skill activates on demand when you mention "Sage Active", "sage api", "sage graphql", or any Sage Active entity name. You can also invoke it explicitly by typing `/` in Agent chat.
 
-```markdown
----
-description: Sage Active Public API V2 (GraphQL) reference. Use when generating, debugging, or reviewing GraphQL queries/mutations against Sage Active, working with Sage Active entities (customers, suppliers, employees, products, sales/purchase documents, accounting), or implementing OAuth2 with Sage Active. Covers FR/ES/DE legislation rules.
-globs:
-alwaysApply: false
----
-
-When working with Sage Active API, first read the skill entry point:
-
-@docs/sage-active/skills/sage-active-api/SKILL.md
-
-Then read the relevant reference file from `docs/sage-active/skills/sage-active-api/references/` before generating Sage Active API code.
-
-Key files:
-- `SKILL.md` — Overview, endpoints, entity quick reference, core patterns
-- `references/00-endpoints-auth.md` — OAuth2 authentication (3 flows)
-- `references/01-graphql-patterns.md` — Pagination, filtering, sorting, errors
-- `references/02-customers.md` through `references/11-purchase-invoices.md` — Entity CRUD
-- `references/12-accounting-accounts.md` through `references/14-accounting-reports.md` — Accounting
-- `references/15-reference-data.md` — Organizations, currencies, taxes, config
-- `references/16-file-management.md` — File upload/download
-- `references/17-aggregations-lists.md` — Reporting
-- `references/18-legislation-rules.md` — Consolidated FR/ES/DE rules
-- `references/19-update-patterns.md` — Update patterns (requestedAction, replaceAll)
-```
-
-This is an "Agent Requested" rule (`alwaysApply: false`, no `globs`): Cursor makes it available to the agent, and the agent decides whether to include it based on the `description`.
-
-3. In Cursor, the rule appears in **Cursor Settings → Rules** and in the Agent sidebar when active.
-
-> **Tip:** Cursor also supports root-level `AGENTS.md` as a simple alternative to Project Rules, but `.cursor/rules/*.mdc` is better here because the rule can be Agent Requested instead of always applied to the whole project.
+> **On older Cursor versions (< 2.4):** native skills aren't supported. Use `.cursor/rules/*.mdc` Project Rules with the same skill files referenced as `@docs/...` paths instead. The legacy `.cursorrules` single-file format is deprecated — don't use it for new installs.
 
 ### OpenAI Codex (Skill)
 
