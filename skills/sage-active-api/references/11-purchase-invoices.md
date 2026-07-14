@@ -241,8 +241,8 @@ query ($fileId: String!) {
 | taxTreatmentId | UUID | | ID for the tax treatment applied. Optional in mutations; system will select the first consistent with the tax rate. |
 | purchaseAccountingAccount | AccountingAccount | | Fields of AccountingAccount (DATALOADER) |
 | purchaseAccountingAccountId | UUID | | ID Account. Optional in mutations; system will automatically choose the first account consistent with the tax rate. |
-| transactionCategory | Category | | Fields of TransactionCategory (DATALOADER) |
-| transactionCategoryId | UUID | Read-only | Transaction category used to determine default accounting settings. References a transaction category of type PURCHASE. Currently available in read-only mode only. |
+| transactionCategory | Category | | Fields of TransactionCategory (DATALOADER) — live on vatLines since 2026-06 |
+| transactionCategoryId | UUID | Read-only | Transaction category used to determine default accounting settings. References a transaction category of type PURCHASE. Currently available in read-only mode only (live on vatLines since 2026-06). |
 
 > **Note on tax fields:** In queries, use `taxes{percentage}` to retrieve the tax percentage, as vatPercentage is only available for mutations.
 

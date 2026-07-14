@@ -363,9 +363,9 @@ For comprehensive insights into making precise modifications to records, check o
 | blockDeliveryNoteEnabled | Boolean | | Block Delivery Note Enabled | |
 | blockInvoiceEnabled | Boolean | | Block Invoice Enabled | |
 | blockOrderEnabled | Boolean | | Block Order Enabled | |
-| **Spain (simplified invoice)** | | | | |
-| nonIdentifiedCustomer | Boolean | | 🚧 COMING SOON (announced 2026-04) — When enabled, sales invoices for this customer are simplified invoices (no customer identification on the invoice). ES only. | |
-| printNameOnPdf | Boolean | | 🚧 COMING SOON (announced 2026-04) — Default for the "print customer name on simplified invoice" option when creating a sales invoice for this customer. ES only. | |
+| **Spain (simplified invoice)** — live since 2026-05 | | | | |
+| nonIdentifiedCustomer | Boolean | | When enabled, sales invoices for this customer are simplified invoices (no customer identification on the invoice). Requires `customerType = INDIVIDUAL`. ES only. | |
+| printNameOnPdf | Boolean | | Default for the "print customer name on simplified invoice" option when creating a sales invoice for this customer. ES only. | |
 
 ### Field Info — Common fields
 

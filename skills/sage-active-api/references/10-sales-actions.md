@@ -558,6 +558,9 @@ mutation($input: GenerateCreditNoteGLDtoInput!) {
 |---|---|---|---|
 | id | UUID | Yes | Unique identifier of the invoice. The invoice must be in Closed or Posted status. |
 | lines[] | Array | No | List of specific invoice lines for partial credit. If not provided, the credit note will be full (entire invoice canceled). |
+| operationalNumberPresetText | OperationalNumberPresetText | No | Operational number preset text used for the generated credit note (added 2026-05) |
+| operationalNumberPresetTextId | UUID | No | Operational number preset text identifier for partial credit (added 2026-05) |
+| outputDocumentDate | DateTime | No | Output document date for partial credit notes (added 2026-06) |
 
 ### generateCreditNote/lines Input Parameters
 
@@ -697,6 +700,7 @@ The DocumentPdfEmail service allows you to send sales documents in PDF format vi
 - **emailFrom**: The email address of the currently logged-in user, from which the email will be sent.
 - **emailTo**: The primary recipient's email address.
 - **emailCc**: Email addresses for CC recipients.
+- **emailBcc**: Email addresses for BCC recipients (optional).
 - **sendEmailCopy**: Boolean indicating whether to send a copy of the email to the sender.
 
 **Email Content (Mandatory):**
@@ -763,6 +767,7 @@ query($input: DocumentPdfEmailGLDtoInput!) {
 | emailFrom | String | Yes | Sender's email address. Can be retrieved from `userProfile` under `authenticationEmail`. |
 | emailTo | String | Yes | Primary recipient's email address |
 | emailCc | String | No | CC recipient's email addresses |
+| emailBcc | String | No | BCC recipient email addresses (added 2026-05) |
 | sendEmailCopy | Boolean | No | Whether to send a copy to the sender |
 | emailSubject | String | No | Subject of the email |
 | emailMessage | String | No | Body content of the email. Supports HTML format; use `<br>` for line breaks. |

@@ -14,7 +14,7 @@ description: >
 
 # Sage Active Public API V2 — Skill Reference
 
-A **GraphQL API** built with Hot Chocolate (.NET), available for three legislations: FR (France), ES (Spain), DE (Germany).
+A **GraphQL API** built with Hot Chocolate (.NET), available for three legislations: FR (France), ES (Spain), DE (Germany). PT (Portugal) support is being introduced — PT-specific fields are already shipping and `legislationCode` gains `PT` with the upcoming `organizations`/`organizationDetail` split (no public PT endpoint documented yet).
 
 Official documentation: https://developer.sage.com/sageactive/
 Postman collection: https://developer.sage.com/sageactive/files/Sage%20Active%20Public%20API%20V2.postman_collection.json
@@ -55,6 +55,7 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | Entity | Query Name | Create Mutation | Update Mutation | Delete Mutation | Reference |
 |--------|-----------|-----------------|-----------------|-----------------|-----------|
 | **Organizations** | `organizations` | — | — | — | 15-reference-data.md |
+| **Organization Detail** | `organizationDetail` (COMING SOON — organizations split) | — | — | — | 15-reference-data.md |
 | **User Profile** | `userProfile` | — | — | — | 15-reference-data.md |
 | **Users** | `users` | — | — | — | 15-reference-data.md |
 | **Customers** | `customers` | `createCustomer` | `updateCustomer` | `deleteCustomer` | 02-customers.md |
@@ -98,11 +99,17 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | **Bank Movements** | `bankMovements` | — | — | — | 15-reference-data.md |
 | **Banking Rules** | `bankingRules` | — | — | — | 15-reference-data.md |
 | **Reconcile Bank Movement** | — | `reconcileBankMovement` (action) | — | — | 15-reference-data.md |
-| **Unreconcile Bank Movement** | — | `unReconcileBankMovement` (action, COMING SOON) | — | — | 15-reference-data.md |
+| **Unreconcile Bank Movement** | — | `unReconcileBankMovement` (action) | — | — | 15-reference-data.md |
 | **Payment Methods** | `paymentMethods` (legacy alias `paymentMeans`) | — | — | — | 15-reference-data.md |
+| **Invoice Types** | `invoiceTypes` | — | — | — | 15-reference-data.md |
 | **Operational Number Preset Texts** | `operationalNumberPresetTexts` | — | — | — | 15-reference-data.md |
 | **Payment Terms** | `paymentTerms` | — | — | — | 15-reference-data.md |
 | **Dimensions** | `dimensions` | — | — | — | 15-reference-data.md |
+| **Org Sales Setup** | `organizationSalesSetupByOrgId` | — | — | — | 15-reference-data.md |
+| **Org Accounting Setup** | `organizationAccountingSetupByOrgId` | — | — | — | 15-reference-data.md |
+| **Org Sales Setup Docs** | `organizationSalesSetupDocsCustomizationByOrgId` | — | — | — | 15-reference-data.md |
+| **Org IRPF Setup (ES)** | `organizationIrpfSetupByOrgId` | — | — | — | 15-reference-data.md |
+| **Org Global Setup (FR)** | `organizationGlobalSetupByOrgId` | — | — | — | 15-reference-data.md |
 | **File Upload** | — | `uploadFileToEntity` (action) | — | — | 16-file-management.md |
 | **File List** | `files` | — | — | — | 16-file-management.md |
 | **File Download** | `fileDownloadById` (action) | — | — | — | 16-file-management.md |
@@ -164,7 +171,7 @@ HTTP 200 with `errors[]` for business errors. HTTP 401 for auth. HTTP 429 for ra
 | `12-accounting-accounts.md` | Chart of accounts, plan master |
 | `13-accounting-entries.md` | Accounting entries (by codes & IDs), sessions |
 | `14-accounting-reports.md` | Trial balance, balance sheet, P&L, third party balance, KPIs |
-| `15-reference-data.md` | Organizations, users, countries, currencies, taxes, banks, bank movements, banking rules, reconcile/unreconcile actions, payment methods, config |
+| `15-reference-data.md` | Organizations (+ organizationDetail split), users, countries, currencies, taxes, invoice types, banks, bank movements, banking rules, reconcile/unreconcile actions, payment methods, org setup queries (sales/accounting/docs/IRPF/global) |
 | `16-file-management.md` | File upload/download/export, AP automation |
 | `17-aggregations-lists.md` | Aggregation & List catalog/execute |
 | `18-legislation-rules.md` | Consolidated FR/ES/DE rules |
@@ -188,6 +195,8 @@ For any information not covered in these references, consult the live documentat
 
 This skill is updated to track Sage's monthly releases. See [`CHANGELOG.md`](CHANGELOG.md) for what changed in each release and the **Open items** checklist of features still in COMING SOON state.
 
-**Current Sage release tracked:** 2026-04 ("Bank reconciliation documentation refresh and new Sales Invoices capabilities").
+**Current Sage release tracked:** 2026-06 ("organizations split (upcoming), setup APIs, and new fields").
+
+> ⚠️ Heads-up for integrators: the next Sage release splits `organizations` (selection fields only) from the new `organizationDetail` query (full configuration). See the Open items section of `CHANGELOG.md` and the migration guide at <https://developer.sage.com/sageactive/resources/organizations_new>.
 
 When Sage ships a new release, follow the *"How to update this skill"* runbook at the top of `CHANGELOG.md`.

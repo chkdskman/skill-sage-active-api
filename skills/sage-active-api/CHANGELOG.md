@@ -29,6 +29,69 @@ Anywhere a field, mutation or query is documented in `references/` but is not ye
 
 ---
 
+## [2026-06] — organizations split (upcoming), setup APIs, and new fields
+
+Source: <https://developer.sage.com/sageactive/?link=last>
+Title: *"organizations split (upcoming), setup APIs, and new fields"*
+
+### ⚠️ Upcoming breaking change announced
+
+- **`organizations` / `organizationDetail` split** — in the next Sage release, `organizations` (LIST + READ by id) returns only selection fields (`id`, `creationDate`, `modificationDate`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`). Full configuration moves to a new `organizationDetail` READ query (resolved via `X-OrganizationId`). Fields that move will still be queryable on `organizations` but return `null`. Migration guide: <https://developer.sage.com/sageactive/resources/organizations_new>. Documented with a COMING SOON callout in [15-reference-data.md](references/15-reference-data.md#organizations).
+- The new-method page documents `legislationCode` as `FR, ES, DE or PT` — **Portuguese legislation** support is being introduced (PT-specific fields already shipping, see below).
+
+### Added (live)
+
+- **`organizationSalesSetupDocsCustomizationByOrgId`** query — sales document customization settings (layout, style, colours, items tables, footer, copies). See [15-reference-data.md](references/15-reference-data.md#organization-sales-setup-docs-document-customization).
+- **`organizationIrpfSetupByOrgId`** query (ES only) — IRPF withholding setup (name, percentage). See [15-reference-data.md](references/15-reference-data.md#organization-irpf-setup-es-only).
+- **`organizationGlobalSetupByOrgId`** query (FR only) — the three mandatory legal mentions (BT-22 / AAB, PMD, PMT). See [15-reference-data.md](references/15-reference-data.md#organization-global-setup-fr-only).
+- **Simplified Invoice dedicated docs page** — <https://developer.sage.com/sageactive/resources/simplifiedinvoices>; rules consolidated in [18-legislation-rules.md](references/18-legislation-rules.md).
+- `GenerateCreditNoteGLDtoInput.outputDocumentDate` — output document date for partial credit notes.
+- `purchaseInvoices/vatLines.transactionCategory` / `.transactionCategoryId` — now exposed on vatLines.
+- `userProfile.firstName` / `.lastName` (read-only).
+- `users.auth0UserId` / `.firstName` / `.lastName` (read-only); `users.fullName` is computed (order/filter on firstName/lastName instead).
+- `createAccountingEntryUsingCodes` / `createAccountingEntryUsingIds` accountingEntryLines: `isGroupingInvoices`, `startInvoiceNumber`, `finishInvoiceNumber` (optional inputs for grouped simplified invoices).
+- `organizations.useWithholdingTaxTreatmentId` — tax treatment used for sales withholding tax.
+- Sales document **lines** (quotes, orders, delivery notes, invoices): `tax`, `taxId`, `taxTreatmentId` (read-only).
+- `salesInvoices.salesInvoiceTemplateId` (read-only) — non-null means the invoice is a Recurring invoice.
+- **Portuguese legislation fields**: `accountingAccounts.taxonomy`; `organizations.useThirdPartyBilling` / `.thirdPartyBillingName` / `.thirdPartyBillingVatNumber`; `organizationAccountingSetup.defaultFinancialDiscountAccountId`; `organizationSalesSetup.salesReceiptDefaultPresetTextId`; `operationalNumberPresetTexts.operationalNumberSeriesType` (NOT_SPECIFIED, NORMAL, RECOVERY_MANUALLY, RECOVERY_IMPORTED).
+
+### Promoted from COMING SOON → live
+
+- `operationalNumberPresetText` / `operationalNumberPresetTextId` on sales documents (quotes, orders, delivery notes, invoices) — verified live (marked NEW, no COMING SOON) on the resource pages.
+- `User.lastName` and `User.fullName` — live on `users` and `userProfile`.
+
+### Notes
+
+- Postman collection refreshed for June: <https://developer.sage.com/sageactive/files/Sage%20Active%20Public%20API%20V2.postman_collection.json>.
+- The portal shows a persistent warning banner about the upcoming `organizations` change.
+
+---
+
+## [2026-05] — Unreconcile bank movements, Spanish simplified invoice fields
+
+Source: <https://developer.sage.com/sageactive/?link=last>
+Title: *"Unreconcile bank movements, Spanish simplified invoice fields"*
+
+### Added (live)
+
+- New **`invoiceTypes`** query — invoice type classifications: `description`, `isAmendInvoice`, `registerType` (BOTH/RECEIVED/ISSUED), `siiCode` (Spanish SII), `invoiceTypesCode`. See [15-reference-data.md](references/15-reference-data.md#invoice-types).
+- `accountingEntries/accountingEntryLines/accountingEntryInvoice` (read-only): `isGroupingInvoices`, `startInvoiceNumber`, `finishInvoiceNumber`, `invoiceType`, `invoiceTypeId` — grouped simplified invoices. See [13-accounting-entries.md](references/13-accounting-entries.md).
+- `DocumentPdfEmailGLDtoInput.emailBcc` — BCC recipient email addresses.
+- `GenerateCreditNoteGLDtoInput.operationalNumberPresetText` / `.operationalNumberPresetTextId` — preset text for generated credit notes.
+- `organizationAccountingSetupByOrgId.defaultFixedAssetJournalTypeId`.
+
+### Promoted from COMING SOON → live
+
+- **`unReconcileBankMovement`** mutation — undo reconciliation via `bankTransactionId` only. (Release notes write it `unreconcileBankMovement`, but the actual mutation name is `unReconcileBankMovement` — capital R — per the resource page.)
+- **Spain — simplified invoices**:
+  - `Customer.nonIdentifiedCustomer` (requires `customerType = INDIVIDUAL`)
+  - `Customer.printNameOnPdf`
+  - `SalesInvoice.printNameOnPdf`
+  - `OrganizationSalesSetup.askGenerateNonIdentifiedSalesInvoicesByDefault` (read-only)
+  - `OrganizationSalesSetup.nonIdentifiedSalesInvoiceMaxAmount` (read-only)
+
+---
+
 ## [2026-04] — Bank reconciliation refresh + Sales Invoices
 
 Source: <https://developer.sage.com/sageactive/?link=last>
@@ -66,15 +129,7 @@ Title: *"Bank reconciliation documentation refresh and new Sales Invoices capabi
 
 Checklist of all `🚧 COMING SOON` markers currently in `references/`. When Sage promotes any of these, move it to a release entry above and clear its inline marker.
 
-- [ ] `unReconcileBankMovement` mutation — announced 2026-04 — [source](https://developer.sage.com/sageactive/resources/unreconcilebankmovement)
-- [ ] `Customer.nonIdentifiedCustomer` (ES simplified invoice) — announced 2026-04 — [source](https://developer.sage.com/sageactive/resources/customers)
-- [ ] `Customer.printNameOnPdf` (ES simplified invoice) — announced 2026-04 — [source](https://developer.sage.com/sageactive/resources/customers)
-- [ ] `SalesInvoice.printNameOnPdf` (ES simplified invoice) — announced 2026-04 — [source](https://developer.sage.com/sageactive/resources/salesinvoices)
-- [ ] `OrganizationSalesSetup.askGenerateNonIdentifiedSalesInvoicesByDefault` (ES) — announced 2026-04 — [source](https://developer.sage.com/sageactive/resources/organizationsalessetup)
-- [ ] `OrganizationSalesSetup.nonIdentifiedSalesInvoiceMaxAmount` (ES) — announced 2026-04 — [source](https://developer.sage.com/sageactive/resources/organizationsalessetup)
-- [ ] `operationalNumberPresetText` / `operationalNumberPresetTextId` on sales documents (quotes, orders, delivery notes, invoices) — announced ≤ 2026-03 — [source](https://developer.sage.com/sageactive/resources/operationalnumberpresettexts)
-- [ ] `User.lastName` — announced ≤ 2026-03 — [source](https://developer.sage.com/sageactive/resources/users_usermanagement)
-- [ ] `User.fullName` — announced ≤ 2026-03 — [source](https://developer.sage.com/sageactive/resources/users_usermanagement)
+- [ ] **`organizations` / `organizationDetail` split** — announced 2026-06 — [migration guide](https://developer.sage.com/sageactive/resources/organizations_new). When live: `organizations` returns only selection fields (the rest go `null`); full config moves to the new `organizationDetail` query; `legislationCode` gains `PT`. On promotion, restructure the Organizations section of [15-reference-data.md](references/15-reference-data.md) into the two-operation model and re-check whether a PT GraphQL endpoint is published (SKILL.md endpoints table + legislation claims in 00/18).
 
 ---
 

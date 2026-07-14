@@ -36,12 +36,19 @@
 
 ## Organizations
 
+> 🚧 **COMING SOON — `organizations` / `organizationDetail` split** — announced 2026-06 — [migration guide](https://developer.sage.com/sageactive/resources/organizations_new)
+> In the next Sage release, `organizations` (LIST and READ by id) will return only the reduced set of fields used to select a business: `id`, `creationDate`, `modificationDate`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`.
+> The full organization configuration (identification, tax settings, contacts, addresses, email settings, taxOfficialModels) moves to a new **`organizationDetail`** READ query, resolved for the organization set in `X-OrganizationId`.
+> To limit breaking changes, `organizations` will keep exposing today's fields, but the ones that move to `organizationDetail` will return `null`. If you read any of those fields and use their values, migrate to `organizationDetail` (call it after selecting the organization from the list).
+> Note: on the new method page, `legislationCode` is documented as `FR, ES, DE or PT` — Portuguese legislation support is being introduced.
+
 ### HTTP Operations
 
 | Method | Operation | Type | Object |
 |--------|-----------|------|--------|
 | POST | Read | Query | organizations filtered by id |
 | POST | List | Query | organizations |
+| POST | Read | Query | organizationDetail 🚧 COMING SOON (announced 2026-06) |
 
 ### Description
 
@@ -76,9 +83,13 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | documentTypeId | UUID | - | Id document type |
 | allowBlankIdentificationNumbers | Boolean | - | always True |
 | useCustomerCodes | Boolean | - | always True |
-| useWithholdingForSales | Boolean | - | **NEW.** Indicates whether withholding tax is applied on sales |
+| useWithholdingForSales | Boolean | - | Indicates whether withholding tax is applied on sales |
+| useWithholdingTaxTreatmentId | UUID | - | Tax treatment used for sales withholding tax (added 2026-06) |
 | nafApeCode | String(7) | - | NAF/APE Code |
 | vatNumber | String(25) | - | Intracommunity VAT number |
+| useThirdPartyBilling | Boolean | - | Indicates whether third-party billing is used (added 2026-06, PT legislation; unused for FR) |
+| thirdPartyBillingName | String | - | Third-party billing name (added 2026-06, PT legislation; unused for FR) |
+| thirdPartyBillingVatNumber | String | - | Third-party billing VAT number (added 2026-06, PT legislation; unused for FR) |
 | vatCriterion | Boolean | - | Enable Cash VAT |
 | datevConsultantNumber | Int | - | DATEV consultant number |
 | datevClientNumber | Int | - | DATEV client number |
@@ -95,7 +106,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 ### Info
 
 - **onboardingCompleted:** Indicates whether the onboarding process for the organization has been fully completed. The API automatically checks this flag before allowing interactions with the organization's data. If the flag is false the organizationId and tenantId will be set to an empty GUID, preventing any use of the organization with the public API.
-- **legislationCode:** FR, ES, or DE. This variable can be used if your application needs to work for different legislations, to account for the differences between them. Please note that this cannot be set during the organization creation process as the organization inherits the legislation from the tenant.
+- **legislationCode:** FR, ES, or DE (PT is added with the upcoming `organizationDetail` split — the new-method page documents `FR, ES, DE or PT`). This variable can be used if your application needs to work for different legislations, to account for the differences between them. Please note that this cannot be set during the organization creation process as the organization inherits the legislation from the tenant.
 - **documentTypeId:** Id of an allowed document type, values are different depending on legislationCode:
 
 | Country | Allowed document types (code name) |
@@ -105,7 +116,9 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | ES | 01 NIF/DNI |
 
 - **documentId:** Identification number, please note that each organization has a unique value. SIREN of 9 characters or any SIRET of 14 characters. Steur-Idn of 11 characters. Valid NIF number.
-- **useWithholdingForSales:** Unused for FR and DE. For ES, indicates whether withholding tax (IRPF) must be applied on sales documents for the organization. When enabled, sales invoices may include withholding tax according to Spanish fiscal rules.
+- **useWithholdingForSales:** Unused for FR and DE. For ES, indicates whether withholding tax (IRPF) must be applied on sales documents for the organization. When enabled, sales invoices may include withholding tax according to Spanish fiscal rules. See also `organizationIrpfSetupByOrgId` for the configured IRPF rate.
+- **useWithholdingTaxTreatmentId:** Tax treatment used for sales withholding tax. Marked "Unused" for the French market in the official docs.
+- **useThirdPartyBilling / thirdPartyBillingName / thirdPartyBillingVatNumber:** Third-party billing settings introduced for the Portuguese legislation. Unused for the French market.
 - **vatCriterion:** Enable Cash VAT. When registering your business and depending on its type of activity, you can configure the type of VAT that will be automatically taken into account when performing entries. Used only for France and Germany.
 - **datevConsultantNumber:** This is the identification number of the DATEV consultant. It is assigned to the tax advisor or accounting firm managing a company's accounting within DATEV, a widely used software in Germany. Not used (only for German legislation).
 - **datevClientNumber:** This field represents the DATEV client identification number. It is assigned to each company registered in DATEV and helps associate accounting entries and financial transactions with the correct organization in the system. Not used (only for German legislation).
@@ -221,9 +234,9 @@ Represents the information about the currently authenticated user within the sys
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | UUID | System, Read-only | Id |
-| firstName | String | Read-only | User's first name |
-| lastName | String | Read-only | User's last name. 🚧 COMING SOON (announced ≤ 2026-03) |
-| fullName | String | Read-only | User's full name. 🚧 COMING SOON (announced ≤ 2026-03) |
+| firstName | String | Read-only | User's first name (live since 2026-06) |
+| lastName | String | Read-only | User's last name (live since 2026-06) |
+| fullName | String | Read-only | User's full name |
 | applicationLanguageCode | String | Read-only | User's language (e.g. en-US) |
 | authenticationEmail | String | Read-only | User's email |
 
@@ -261,10 +274,15 @@ Additionally, each user has an associated application language, which defines th
 |-------|------|----------|-------|
 | id | UUID | System | Id |
 | authenticationEmail | String | Read-only | Email |
-| fullName | String | Read-only | Name and Surname |
+| auth0UserId | String | Read-only | Auth0 user identifier (live since 2026-06) |
+| firstName | String | Read-only | User's first name (live since 2026-06) |
+| lastName | String | Read-only | User's last name (live since 2026-06) |
+| fullName | String | Read-only, Computed | Name and Surname. Computed field — cannot be used in filtering or sorting; order/filter on firstName and lastName instead |
 | applicationLanguageCode | String | Read-only | User's language (e.g. en-US) |
 
-**Info:** applicationLanguageCode - Allows you to know the language preference of the connected user to also localize your application.
+**Info:**
+- **applicationLanguageCode** - Allows you to know the language preference of the connected user to also localize your application.
+- **auth0UserId** - Unique identifier of the user in Auth0. Can be used to reconcile the Public API user with the corresponding identity provider account.
 
 ---
 
@@ -978,6 +996,47 @@ The calculation of the net and VAT will be automatic according to the percentage
 
 ---
 
+## Invoice Types
+
+> **Source:** <https://developer.sage.com/sageactive/resources/invoicetypes>
+> New query — live since the 2026-05 release.
+
+### HTTP Operations
+
+| Method | Operation | Type | Object |
+|--------|-----------|------|--------|
+| POST | List | Query | invoiceTypes |
+
+### Description
+
+An invoice type defines the business and legal classification applied to an invoice. It is used to distinguish standard invoices, simplified invoices, and amended invoices, and provides the related register type and SII classification code when applicable.
+
+Notably relevant for Spain: `siiCode` carries the Spanish SII classification, and the simplified-invoice type is referenced by grouped simplified invoices in accounting entries (`accountingEntryInvoice.invoiceTypeId`).
+
+### Headers
+
+| Key | Value |
+|-----|-------|
+| Authorization | Bearer {access_token} |
+| X-TenantId | **Deprecated.** Current tenant id |
+| X-OrganizationId | Current organization Id |
+| x-api-key | Primary or secondary subscription key of your app |
+
+### invoiceTypes Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| creationDate | DateTime | System | Creation Date |
+| modificationDate | DateTime | System | Modification Date |
+| description | String | - | Invoice type description |
+| isAmendInvoice | Boolean | - | Indicates whether this is an amended invoice |
+| registerType | Enum | - | Values: BOTH, RECEIVED, ISSUED |
+| siiCode | String | - | Spanish SII classification code (unused for the French market) |
+| invoiceTypesCode | String | - | Invoice type code |
+
+---
+
 ## Bank Accounts
 
 ### HTTP Operations
@@ -1339,7 +1398,7 @@ mutation ($input: ReconcileBankMovementGLDtoInput!) {
 ## Unreconcile Bank Movement
 
 > **Source:** <https://developer.sage.com/sageactive/resources/unreconcilebankmovement>
-> 🚧 **COMING SOON** — announced 2026-04. Documented; not yet live in production.
+> Live since the 2026-05 release.
 
 ### HTTP Operations
 
@@ -2405,6 +2464,8 @@ query ($id: ID!) {
 | openItemsAutomaticAllocation | Boolean | - | Open items automatic allocation |
 | defaultPayrollJournalTypeId | UUID | *Required | Default journal Payroll Id (only if Payroll is integrated) |
 | defaultPayrollSessionId | UUID | *Required | Default session Id for journal Payroll (only if Payroll is integrated) |
+| defaultFixedAssetJournalTypeId | UUID | - | Default fixed asset journal type Id (added 2026-05) |
+| defaultFinancialDiscountAccountId | UUID | - | Default financial discount account Id (added 2026-06, PT legislation) |
 
 ### Info
 
@@ -2519,17 +2580,19 @@ query ($id: ID!) {
 |-------|------|----------|-------|
 | salesDeliveryNoteDefaultPresetTextId | UUID | - | Id of the default preset text for delivery notes |
 | salesOrderDefaultPresetTextId | UUID | - | Id of the default preset text for orders |
+| salesQuoteDefaultPresetTextId | UUID | - | Id of the default preset text for sales quotes |
 | salesInvoiceDefaultPresetTextId | UUID | - | Id of the default preset text for sales invoices |
 | salesCreditNoteDefaultPresetTextId | UUID | - | Id of the default preset text for sales credit notes |
+| salesReceiptDefaultPresetTextId | UUID | - | Id of the default preset text for sales receipts (added 2026-06; unused for FR) |
 | useSalesTracking | Boolean | - | Indicates if sales tracking is enabled |
 | useVATRatesForDOM | Boolean | - | Indicates if VAT rates for DOM are used |
 
-**Spain (simplified invoice) — read-only:**
+**Spain (simplified invoice) — read-only (live since 2026-05):**
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| askGenerateNonIdentifiedSalesInvoicesByDefault | Boolean | Read-only | 🚧 COMING SOON (announced 2026-04) — when true, simplified invoices are used for individual customers by default. ES only. |
-| nonIdentifiedSalesInvoiceMaxAmount | Decimal | Read-only | 🚧 COMING SOON (announced 2026-04) — warning limit for simplified invoice amounts. ES only. |
+| askGenerateNonIdentifiedSalesInvoicesByDefault | Boolean | Read-only | When true, simplified invoices are used for individual customers by default. ES only. |
+| nonIdentifiedSalesInvoiceMaxAmount | Decimal | Read-only | Warning limit for simplified invoice amounts (e.g. 400 for the general €400 VAT-included limit). ES only. |
 
 **Posting Sales Invoices:**
 
@@ -2552,6 +2615,142 @@ query ($id: ID!) {
 - **useVATRatesForDOM:** Allows selecting VAT rates for DOM in sales entities. Not used for Spanish or German market.
 - **defaultSalesPostingInvoiceSessionId:** Not used for French or Spanish Market. Used to define the Session preference for posting a sales invoice to your accounting records (DE only).
 - **defaultPurchasePostingInvoiceSessionId:** Not used for French or Spanish Market. Used to define the Session preference for posting a purchase invoice to your accounting records (DE only).
+
+---
+
+## Organization Sales Setup Docs (Document Customization)
+
+> **Source:** <https://developer.sage.com/sageactive/resources/organizationsalessetupdocscustomization>
+> New query — live since the 2026-06 release.
+
+### HTTP Operations
+
+| Method | Operation | Type | Object |
+|--------|-----------|------|--------|
+| POST | Read | Query | organizationSalesSetupDocsCustomizationByOrgId |
+
+### Description
+
+Returns the sales document customization settings configured for the organization set in `X-OrganizationId`. These settings control the layout, style, content, and export options applied to sales documents (quotes, orders, delivery notes, invoices, credit notes).
+
+### organizationSalesSetupDocsCustomizationByOrgId Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| creationDate | DateTime | System | Creation Date |
+| modificationDate | DateTime | System | Modification Date |
+
+**Layout:**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| logoSizePercentage | Int | Logo size percentage |
+| salesDocumentCustomizationLogoPosition | Enum | Values: TOP_LEFT, TOP_RIGHT |
+| salesDocumentCustomizationCompanyDetailsPosition | Enum | Values: BELOW_LOGO, NEXT_TO_LOGO |
+| salesDocumentCustomizationCustomerAddressPosition | Enum | Values: LEFT, RIGHT |
+| salesDocumentCustomizationDescriptionWidth | Enum | Values: COLUMN_WIDTH, FULL_WIDTH |
+
+**Style:**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| salesDocumentCustomizationStyle | Enum | Values: DEFAULT |
+| salesDocumentCustomizationFontFamilyName | Enum | Values: ARIAL, CALIBRI, COMIC_SANS_MS, COURIER, GEORGIA, SOURCE_SANS_PRO, TAHOMA, TIMES_NEW_ROMAN, VERDANA |
+| salesDocumentCustomizationFontSize | Enum | Values: LARGE, MEDIUM, SMALL |
+| salesDocumentCustomizationFontColor | String | Default font colour (HEX code) |
+| salesDocumentCustomizationBackgroundImageFit | Enum | Values: SCALE_HEIGHT, SCALE_WIDTH |
+| salesDocumentCustomizationBackgroundImageOpacity | Int | Background image opacity |
+
+**Colour scheme:**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| applyExportColorToAllDocuments | Boolean | Apply the same export colour to all document types |
+| salesQuotesExportColor | String | Export colour for quotes (HEX code) |
+| salesOrdersExportColor | String | Export colour for orders (HEX code) |
+| salesDeliveryNotesExportColor | String | Export colour for delivery notes (HEX code) |
+| salesInvoicesExportColor | String | Export colour for invoices (HEX code) |
+| salesCreditNotesExportColor | String | Export colour for credit notes (HEX code) |
+
+**Items table (per document type — Quotes / Orders / Delivery notes / Invoices / Credit notes):**
+
+| Field pattern | Type | Notes |
+|---------------|------|-------|
+| showProductCode{DocType} | Boolean | Show product or service code (DocType ∈ Quotes, Orders, DeliveryNotes, Invoices, CreditNotes) |
+| showProductName{DocType} | Boolean | Show product or service name |
+| showProductDescription{DocType} | Boolean | Show product or service description |
+| showPricingAndAmountDeliveryNotes | Boolean | Show pricing and amount on delivery notes (delivery notes only) |
+| showDeliveryAddressInvoices / showDeliveryAddressCreditNotes | Boolean | Show the delivery address (invoices / credit notes only) |
+| sales{DocType}IntroText | String | Personalised introduction text — default for `comments` when creating a new document of that type |
+
+**Footer details and copies:**
+
+| Field | Type | Notes |
+|-------|------|-------|
+| specialMention | String | Final notes displayed at the end of sales documents. Org-level default; merge it with the customer's `specialMention` when creating a sales invoice |
+| legalTextFirstLine | String | First line of footer legal or contact information |
+| legalTextSecondLine | String | Second line of footer legal or contact information |
+| numberOfCopiesForQuotes / ...Orders / ...Invoices / ...CreditNotes / ...Receipts | Int | Number of copies generated per document type |
+
+---
+
+## Organization IRPF Setup (ES only)
+
+> **Source:** <https://developer.sage.com/sageactive/resources/organizationirpfsetup>
+> New query — live since the 2026-06 release. Available for ES legislation only.
+
+### HTTP Operations
+
+| Method | Operation | Type | Object |
+|--------|-----------|------|--------|
+| POST | Read | Query | organizationIrpfSetupByOrgId |
+
+### Description
+
+Returns the IRPF (Spanish withholding tax) setup configured for the organization set in `X-OrganizationId`: the configured withholding rate with its identifier, label, and percentage used when calculating withholding amounts on sales invoices and related documents.
+
+Used together with `useWithholdingForSales` at organization level and the IRPF-related fields on sales documents and lines (`totalLiquidNoWithholding`, `totalWithholding`, `withholdingPercentage`) and products (`useWithholding`).
+
+### organizationIrpfSetupByOrgId Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| name | String | - | Name of the IRPF withholding rate (Spain only) |
+| percentage | Decimal | - | Withholding percentage (IRPF) applied (Spain only) |
+
+---
+
+## Organization Global Setup (FR only)
+
+> **Source:** <https://developer.sage.com/sageactive/resources/organizationglobalsetup>
+> New query — live since the 2026-06 release. Available for FR legislation only.
+
+### HTTP Operations
+
+| Method | Operation | Type | Object |
+|--------|-----------|------|--------|
+| POST | Read | Query | organizationGlobalSetupByOrgId |
+
+### Description
+
+Returns the global setup configured for the organization set in `X-OrganizationId`. For French organizations this includes the three mandatory legal mentions (mentions légales obligatoires) configured under Settings > Business > Legal obligations. They are always present on sales invoices and are exposed on invoices as BT-22 (Invoice note) using UN/CEFACT qualifier codes AAB, PMD, and PMT.
+
+| Sage Active UI section | API field | UN/CEFACT code | BT-22 purpose |
+|------------------------|-----------|----------------|---------------|
+| Early payment conditions | legalMention1 | AAB | Discount, or absence of discount, for early payment |
+| Late payment conditions | legalMention2 | PMD | Penalties in accordance with the company's payment terms |
+| Legal fixed compensation | legalMention3 | PMT | Fixed penalty of 40 EUR for collection costs |
+
+### organizationGlobalSetupByOrgId Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| legalMention1 | String(200) | - | Early payment conditions (AAB / BT-22). Default: "Les règlements reçus avant la date d'échéance ne donneront pas lieu à escompte." |
+| legalMention2 | String(200) | - | Late payment conditions (PMD / BT-22). Default: "Tout retard de paiement entraîne l'exigibilité de pénalités calculées sur la base de trois fois le taux d'intérêt légal." |
+| legalMention3 | String(200) | - | Legal fixed compensation for collection costs (PMT / BT-22). Default: "Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €." |
 
 ---
 
@@ -2638,6 +2837,7 @@ The Organization Sales Setup includes two fields to define the default presets: 
 | description | String | - | Description of the preset text |
 | isDefault | Boolean | - | Indicates if it is the default preset |
 | operation | Enum | - | Values: NOT_SPECIFIED, DELIVERY_NOTE, INVOICE, ORDER, QUOTE |
+| operationalNumberSeriesType | Enum | - | Values: NOT_SPECIFIED, NORMAL, RECOVERY_MANUALLY, RECOVERY_IMPORTED. Operational number series type (added 2026-06, PT legislation) |
 | presetText | String | - | Preset text (prefix applied to operational numbers) |
 
 ### Info

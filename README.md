@@ -165,7 +165,7 @@ All entity details: `skills/sage-active-api/references/`
 ## Source
 
 Documentation sourced from: https://developer.sage.com/sageactive/
-API Version: V2 (April 2026 release)
+API Version: V2 (June 2026 release)
 
 For per-release deltas and the list of fields still in COMING SOON state, see [skills/sage-active-api/CHANGELOG.md](skills/sage-active-api/CHANGELOG.md).
 

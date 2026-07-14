@@ -194,6 +194,18 @@ Suppose you allocate an entry line to Warehouse=Toulouse and Department=Sales. T
 | openItems[] | Array | | Open items |
 | accountingEntryTaxes[] | Array | | Tax registers |
 
+### Grouped Simplified Invoices (read-only, live since 2026-05)
+
+These fields describe an accounting entry invoice that represents a grouping of several simplified invoices (ES):
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| isGroupingInvoices | Boolean | Read-only | Indicates whether the accounting entry invoice represents a grouping of several simplified invoices |
+| startInvoiceNumber | String | Read-only | First simplified invoice number included in the grouped invoice range |
+| finishInvoiceNumber | String | Read-only | Last simplified invoice number included in the grouped invoice range |
+| invoiceType | InvoiceType | Read-only | DATALOADER — invoice type used for the grouped invoices (see `invoiceTypes` query in 15-reference-data.md) |
+| invoiceTypeId | UUID | Read-only | Identifier of the invoice type, notably the simplified invoice type for grouped simplified invoices |
+
 ### Corrective Invoices (Spanish Legislation Only)
 
 These fields are only available in Sage Active ES within the context of corrective invoices. Corrective invoices align with the Spanish VAT regulation (Reglamento de Facturacion - Real Decreto 1619/2012), which distinguishes between two types of corrective invoices (facturas rectificativas) based on whether they adjust the original invoice or fully replace it.
@@ -404,6 +416,9 @@ The conditions are:
 | description | String | No | Description of the line. If not specified, assigned from the header description. |
 | debitAmount | Decimal | Yes | Amount debit. Entry must be balanced (debits = credits). |
 | creditAmount | Decimal | Yes | Amount credit. Entry must be balanced (debits = credits). |
+| isGroupingInvoices | Boolean | No | Indicates whether invoices are grouped (grouped simplified invoices, ES — added 2026-06) |
+| startInvoiceNumber | String | No | First invoice number included in the grouping (added 2026-06) |
+| finishInvoiceNumber | String | No | Last invoice number included in the grouping (added 2026-06) |
 
 > **Note:** For PURCHASE_INVOICE or SALES_INVOICE journals, if several lines contain the same third party, these lines are merged into one with the sum of the debit or credit. This allows compliance with Sage Active while permitting the addition of entries from an import file containing invoices where the due dates are split over several lines.
 
@@ -541,6 +556,9 @@ The conditions are:
 | description | String | No | Description of the line. If not specified, assigned from the header description. |
 | debitAmount | Decimal | Yes | Amount debit. Entry must be balanced (debits = credits). |
 | creditAmount | Decimal | Yes | Amount credit. Entry must be balanced (debits = credits). |
+| isGroupingInvoices | Boolean | No | Indicates whether invoices are grouped (grouped simplified invoices, ES — added 2026-06) |
+| startInvoiceNumber | String | No | First invoice number included in the grouping (added 2026-06) |
+| finishInvoiceNumber | String | No | Last invoice number included in the grouping (added 2026-06) |
 
 > **Note:** For PURCHASE_INVOICE or SALES_INVOICE journals, if several lines contain the same third party, these lines are merged into one with the sum of the debit or credit. This allows compliance with Sage Active while permitting the addition of entries from an import file containing invoices where the due dates are split over several lines.
 

@@ -108,8 +108,8 @@ mutation ($values: SalesQuoteCreateGLDtoInput!) {
 | customerId | UUID | Yes (create only) | ID of the Customer entity. Not mandatory for Quote. |
 | documentDate | DateTime | No | Document Date (only date value considered, time ignored) |
 | operationalNumber | String (50) | No | Document Number |
-| operationalNumberPresetText | OperationalNumberPresetText | No | DATALOADER — Fields of OperationalNumberPresetText. 🚧 COMING SOON (announced ≤ 2026-03) |
-| operationalNumberPresetTextId | UUID | No | ID of the operational number preset text. 🚧 COMING SOON (announced ≤ 2026-03) |
+| operationalNumberPresetText | OperationalNumberPresetText | No | DATALOADER — Fields of OperationalNumberPresetText (live since 2026-06) |
+| operationalNumberPresetTextId | UUID | No | ID of the operational number preset text (live since 2026-06) |
 | status | String (15) | No | Possible values: Pending, Closed, Declined |
 | socialName | String (50) | No (create only) | Social Name |
 | contactName | String (50) | No | Contact Name |
@@ -242,6 +242,9 @@ If the query targets salesQuotes, then use lines to get the details of the lines
 | unitPrice | Decimal | No | Unit price |
 | vatPercentage | Decimal | Read-only | VAT percentage |
 | equivalenceSurchargePercentage | Decimal | Read-only | Surcharge percentage |
+| tax | Tax | Read-only | Fields of Tax (DATALOADER) — added 2026-06 |
+| taxId | UUID | Read-only | Tax ID — added 2026-06 |
+| taxTreatmentId | UUID | Read-only | Tax treatment ID — added 2026-06 |
 
 ### Totals
 

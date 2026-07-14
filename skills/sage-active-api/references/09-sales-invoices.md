@@ -135,8 +135,8 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | customerId | UUID | Required, Non-modifiable | ID of the Customer entity. Not mandatory for Quote |
 | documentDate | DateTime | | Document Date (date only, time ignored) |
 | operationalNumber | String | | Document Number (max 50) |
-| operationalNumberPresetText | OperationalNumberPresetText | | DATALOADER — Fields of OperationalNumberPresetText. 🚧 COMING SOON (announced ≤ 2026-03) |
-| operationalNumberPresetTextId | UUID | | ID of the operational number preset text. 🚧 COMING SOON (announced ≤ 2026-03) |
+| operationalNumberPresetText | OperationalNumberPresetText | | DATALOADER — Fields of OperationalNumberPresetText (live since 2026-06) |
+| operationalNumberPresetTextId | UUID | | ID of the operational number preset text (live since 2026-06) |
 | status | String | | Pending, Closed, Posted, PartiallyCollected, Collected (max 15) |
 | socialName | String | Non-modifiable | Social Name (max 50) |
 | contactName | String | | Contact Name (max 50) |
@@ -201,11 +201,12 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | operationDate | DateTime | | Date of operation / fulfillment date (date only, time ignored) |
 | salesOrderNumber | String | | External Order Number (max 250) |
 | type | NONE, CREDIT_NOTE, NORMAL, PAYMENT_IN_ADVANCE | | Document type |
+| salesInvoiceTemplateId | UUID | Read-only | Sales invoice template ID — when a value is returned, the invoice corresponds to a Recurring invoice; when null, it is a classic invoice (added 2026-06) |
 | hasCreditNote | Boolean | | Indicates whether a credit note exists: true/false |
 | firstDueDate | DateTime | | The first due date for payment of the invoice (date only, time ignored) |
 | createdInSoftwareVersion | String | | Links an invoice to the software release version (max 10) |
 | openItems[] | Array | | Open Items |
-| printNameOnPdf | Boolean | | 🚧 COMING SOON (announced 2026-04) — Print the customer name on the simplified-invoice PDF for this document. ES only. Pre-fillable from `Customer.printNameOnPdf`. |
+| printNameOnPdf | Boolean | | Print the customer name on the simplified-invoice PDF for this document. ES only. Pre-fillable from `Customer.printNameOnPdf` (live since 2026-05) |
 | specialMention | String | | Free-text mention displayed on the final invoice (must be explicitly set via API) (max 1000) |
 | canGeneratePaymentLink | Boolean | | (NEW) Indicates whether the invoice should generate an online payment link |
 | invoiceEmail | String | | (NEW) Email address used when sending the invoice with the online payment link |
@@ -312,6 +313,9 @@ If the query targets `salesInvoices`, then use `lines` to get the details of the
 | unitPrice | Decimal | | Unit price |
 | vatPercentage | Decimal | Read-only | VAT percentage |
 | equivalenceSurchargePercentage | Decimal | Read-only | Surcharge percentage |
+| tax | Tax | Read-only | Fields of Tax (DATALOADER) — added 2026-06 |
+| taxId | UUID | Read-only | Tax ID — added 2026-06 |
+| taxTreatmentId | UUID | Read-only | Tax treatment ID — added 2026-06 |
 
 ### Totals
 

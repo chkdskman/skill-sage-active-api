@@ -127,6 +127,7 @@ Example Response:
 | applyVat | Boolean | No | Indicates whether VAT is applied based on the account's nature. See Info section. |
 | includedEurForGermany | Boolean | Read-only | Indicates whether the account is considered in the EÜR result (German legislation only). See Info section. |
 | createdByUser | Boolean | Read-only | Indicates when the account is created manually (German legislation only). See Info section. |
+| taxonomy | - | - | Taxonomy (added 2026-06, Portuguese legislation) |
 | transitionalPrepaymentAccount | AccountingAccount | Dataloader | Fields of AccountingAccount. |
 | transitionalPrepaymentAccountId | UUID | No | Prepayment account for advance payments with tax. See Info section. |
 | yearEndClosingAccount | AccountingAccount | Dataloader | Fields of AccountingAccount. |

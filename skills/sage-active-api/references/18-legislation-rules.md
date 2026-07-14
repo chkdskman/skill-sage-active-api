@@ -114,10 +114,17 @@ These fields appear on **all sales document types** (quotes, orders, delivery no
 
 ### Simplified Invoices (Spain)
 
-> 🚧 **COMING SOON** — announced 2026-04 — [source](https://developer.sage.com/sageactive/?link=last)
-> The fields below are documented by Sage but not yet live in production. Track status in [CHANGELOG.md](../CHANGELOG.md) → *Open items*.
+> ✅ **Live since 2026-05.** Dedicated documentation page: <https://developer.sage.com/sageactive/resources/simplifiedinvoices>
 
-For non-identified customers (Spanish "factura simplificada"), the customer can be omitted from the invoice. Fields are scattered across three resources:
+For non-identified customers (Spanish "factura simplificada"), the customer can be omitted from the invoice. Requirements: `customerType = INDIVIDUAL` **and** `nonIdentifiedCustomer = true` on the customer. Creation uses the standard `createSalesInvoice` mutation — no specific product or line type is required.
+
+Key rules from the dedicated page:
+- `documentId` (valid NIF/DNI/NIE) is **not mandatory**; `vatNumber` not mandatory; company address optional.
+- Even when the customer's `countryAcronym` is a foreign country, **Spanish VAT (IVA) still applies** on simplified invoices (they are for domestic B2C retail; the applicable Spanish tax rate must be shown on the document).
+- Permitted generally up to €400 VAT included (€3,000 in specific sectors such as retail, hospitality, transport). `nonIdentifiedSalesInvoiceMaxAmount` drives the warning.
+- Grouped simplified invoices are represented in accounting entries via `accountingEntryInvoice.isGroupingInvoices` / `startInvoiceNumber` / `finishInvoiceNumber` / `invoiceTypeId` (see 13-accounting-entries.md) and classified with the `invoiceTypes` query (SII codes — see 15-reference-data.md).
+
+Fields are scattered across three resources:
 
 | Resource | Field | Type | Purpose |
 |----------|-------|------|---------|
