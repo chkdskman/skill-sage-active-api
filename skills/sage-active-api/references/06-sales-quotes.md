@@ -138,6 +138,7 @@ mutation ($values: SalesQuoteCreateGLDtoInput!) {
 | totalFeeSurcharge | Decimal | No | Total equivalence surcharge applied, based on VAT |
 | totalVatFee | Decimal | No | VAT amount used as the base for the surcharge |
 | discount | Decimal | No | Specific discount applied |
+| hasCashVat | Boolean | No | Indicates whether the document is subject to Cash VAT (FR/DE only, default). Added 2026-07 |
 | totalLiquidNoWithholding | Decimal | No | Total amount excluding withholding |
 | totalWithholding | Decimal | No | Total withholding amount |
 
@@ -242,6 +243,7 @@ If the query targets salesQuotes, then use lines to get the details of the lines
 | unitPrice | Decimal | No | Unit price |
 | vatPercentage | Decimal | Read-only | VAT percentage |
 | equivalenceSurchargePercentage | Decimal | Read-only | Surcharge percentage |
+| applyEquivalenceSurcharge | Boolean | No | Apply equivalence surcharge on the line (ES). Added 2026-09 |
 | tax | Tax | Read-only | Fields of Tax (DATALOADER) — added 2026-06 |
 | taxId | UUID | Read-only | Tax ID — added 2026-06 |
 | taxTreatmentId | UUID | Read-only | Tax treatment ID — added 2026-06 |

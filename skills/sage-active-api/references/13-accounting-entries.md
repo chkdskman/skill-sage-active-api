@@ -214,6 +214,8 @@ These fields are only available in Sage Active ES within the context of correcti
 |-------|------|----------|-------|
 | creditNoteType | Enum: UNDEFINED, BY_DIFFERENCES, SUBSTITUTIVE | | Specifies the category of the corrective invoice according to Spanish VAT regulations |
 | creditNoteReason | Enum: UNDEFINED, R1, R2, R3, R4, R5 | | Specifies the reason for issuing the corrective invoice |
+| originalInvoiceDate | DateTime | | Date of the original invoice being corrected (added 2026-09) |
+| originalInvoiceNumber | String | | Number of the original invoice being corrected (added 2026-09) |
 | originalEntryInvoiceTaxesBaseSum | Decimal | | Total taxable base amount of the original invoice being corrected |
 | originalEntryInvoiceTaxesSurchargeAmountSum | Decimal | | Total surcharge amount applied to the original invoice |
 | originalEntryInvoiceTaxesTaxAmountSum | Decimal | | Total tax amount of the original invoice being corrected |

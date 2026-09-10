@@ -154,14 +154,25 @@ Response:
 | supplier | Supplier | | Fields of supplier (DATALOADER) |
 | supplierId | UUID | | ID of the supplier entity |
 | pendingAmount | Decimal | | Amount still due on the invoice |
-| status | String | Read-only | Pending, Closed, Posted, PartiallyPaid, Paid, Uploading, SbdRejected |
+| status | String | Read-only | Pending, Closed, Posted, PartiallyPaid, Paid, Uploading, SbdRejected + FR e-invoice values AwaitingDecision, Refused, PartiallyAccepted, Accepted (added 2026-09) |
 | description | String | Read-only | Provides additional details about the current status (businessErrors code) |
 | totalLiquid | Decimal | | Total amount due including taxes |
 | hasCashVat | Boolean | | Indicates if the invoice is subject to Cash VAT |
+| purchaseType | NONE, NORMAL, SIMPLIFIED | | 🚧 COMING SOON (announced 2026-09) — purchase invoice type. `NORMAL` required when the buyer needs VAT deduction; `SIMPLIFIED` for amounts up to €150 incl. VAT |
 | fileId | String | Read-only | ID of the file used for OCR recognition |
 | fileName | String (255) | Read-only | Name of the file used for OCR recognition |
+| pageCount | Decimal | Read-only | 🚧 COMING SOON (announced 2026-09) — number of pages of the invoice document |
 | vatLines[] | Array | Required | VAT lines of purchase Invoice |
 | openItems[] | Array | | Open items of purchase Invoice |
+
+**Electronic invoicing (FR only — added 2026-09).** Full flow: [20-einvoice-fr.md](20-einvoice-fr.md).
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| eInvoiceId | UUID | Read-only | Electronic invoice identifier |
+| isEInvoice | Boolean | Read-only | Indicates whether the invoice is an electronic invoice |
+| isEInvoiceCreditNote | Boolean | Read-only | Indicates whether the electronic invoice is a credit note |
+| eInvoicingStatus | Enum | Read-only | Standardized e-invoicing lifecycle status: NEW, CREATED, SUBMITTED, ISSUE_BY_THE_PLATFORM, PAYMENT_RECEIVED, COMPLETED, RECEIVED_BY_PLATFORM, MADE_AVAILABLE, IN_HAND, APPROVED, REFUSED, PARTIALLY_APPROVED, PAYMENT_SENT, REJECTED, DISPUTED, SUSPENDED, FAILED_TO_SEND, RECEIVED |
 
 ### Status Values
 
@@ -176,7 +187,13 @@ Response:
 - **PartiallyPaid:** The invoice is partially paid. Payments are pending.
 - **Paid:** The invoice is fully paid.
 
-> **Attention:** The Sage Active interface overrides the values Posted and PartiallyCollected of the status field with Overdue and PartiallyOverdue if the value of the firstDueDate field is earlier than the current date. However, these values Overdue and PartiallyOverdue are not returned by the API, which instead returns Posted and PartiallyCollected, respectively.
+**French electronic invoices (added 2026-09, FR only):**
+- **AwaitingDecision:** Electronic invoice for which a decision must be taken (approval / refusal).
+- **Refused:** Electronic invoice that has been refused.
+- **PartiallyAccepted:** Electronic invoice that has been partially accepted.
+- **Accepted:** Electronic invoice that has been accepted.
+
+> **Attention:** The Sage Active interface overrides the values Posted and PartiallyPaid of the status field with Overdue and PartiallyOverdue if the value of the firstDueDate field is earlier than the current date. However, these values Overdue and PartiallyOverdue are not returned by the API, which instead returns Posted and PartiallyPaid, respectively.
 
 To filter invoices that are overdue:
 
@@ -184,7 +201,7 @@ To filter invoices that are overdue:
 query {
   purchaseInvoices(
     where: {
-      status: { in: ["Posted","PartiallyCollected"] }
+      status: { in: ["Posted","PartiallyPaid"] }
       firstDueDate: { lt: "2024-10-09" }
     }
   )

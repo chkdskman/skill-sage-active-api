@@ -139,9 +139,9 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | operationalNumberPresetTextId | UUID | | ID of the operational number preset text (live since 2026-06) |
 | status | String | | Pending, Closed, Posted, PartiallyCollected, Collected (max 15) |
 | socialName | String | Non-modifiable | Social Name (max 50) |
-| contactName | String | | Contact Name (max 50) |
-| contactPhone | String | | Contact Phone (max 15) |
-| contactEmail | String | | Contact Email (max 50) |
+| contactName | String | Read-only | Contact Name (max 50) — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
+| contactPhone | String | Read-only | Contact Phone (max 15) — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
+| contactEmail | String | Read-only | Contact Email (max 50) — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
 | contactJobAreaId | UUID | | Id of the Contact Job Area |
 | countryAcronym | String | | Country Acronym (max 2) |
 
@@ -165,6 +165,7 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | totalFeeSurcharge | Decimal | | Total equivalence surcharge applied, based on VAT |
 | totalVatFee | Decimal | | VAT amount used as the base for the surcharge |
 | discount | Decimal | | Specific discount applied |
+| hasCashVat | Boolean | | Indicates whether the document is subject to Cash VAT (FR/DE only, default). Added 2026-07 |
 | totalLiquidNoWithholding | Decimal | | Total amount excluding withholding |
 | totalWithholding | Decimal | | Total withholding amount |
 
@@ -211,6 +212,47 @@ mutation ($values: SalesInvoiceCreateGLDtoInput!) {
 | canGeneratePaymentLink | Boolean | | (NEW) Indicates whether the invoice should generate an online payment link |
 | invoiceEmail | String | | (NEW) Email address used when sending the invoice with the online payment link |
 | paymentTermLines[] | Array | | Payment Term Lines |
+
+### Electronic Invoicing (FR only — added 2026-09)
+
+> 🇫🇷 Only visible under FR legislation, and only when `organizationEInvoiceSetupByOrgId.status` is `Accepted` (organization registered with the Sage *Plateforme Agréée*). Full flow: [20-einvoice-fr.md](20-einvoice-fr.md) — <https://developer.sage.com/sageactive/resources/einvoice>
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| eInvoiceId | UUID | Read-only | Electronic invoice identifier |
+| eInvoicingAddressTypeCustomer | String | | Electronic invoicing address type of the customer — copied by default from `Customer.eInvoicingAddressType` (`fr.siren`, `fr.siren_suffix`, `fr.sirensiret`, `fr.sirensiret_routing`) |
+| eInvoicingAddressCustomer | String | | Electronic invoicing address of the customer — copied by default from `Customer.eInvoicingAddress` |
+| eInvoicingStatus | Enum | Read-only | Standardized e-invoicing lifecycle status (see enum below) |
+| regulatoryBillingFramework | String | | Regulatory billing framework: `B1`, `S1`, `M1`, `B4`, `M4`, `S4` |
+| shouldSendViaElectronicInvoicing | Boolean | Default | Send the invoice via electronic invoicing. True when the customer has both `eInvoicingAddressType` and `eInvoicingAddress` filled |
+| eInvoice[] | Array | Read-only | Electronic invoice entries (one sales invoice can have several) |
+
+**`regulatoryBillingFramework` values**
+
+| Value | Meaning |
+|-------|---------|
+| B1 | Invoice for goods |
+| S1 | Invoice for services |
+| M1 | Mixed invoice (goods + services not incidental to each other) |
+| B4 | Final invoice for goods after a down payment |
+| M4 | Final mixed invoice after a down payment |
+| S4 | Final invoice for services after a down payment |
+
+**`eInvoicingStatus` / `eInvoice[].status` enum** — `NEW`, `CREATED`, `SUBMITTED`, `ISSUE_BY_THE_PLATFORM`, `PAYMENT_RECEIVED`, `COMPLETED`, `RECEIVED_BY_PLATFORM`, `MADE_AVAILABLE`, `IN_HAND`, `APPROVED`, `REFUSED`, `PARTIALLY_APPROVED`, `PAYMENT_SENT`, `REJECTED`, `DISPUTED`, `SUSPENDED`, `FAILED_TO_SEND`, `RECEIVED`.
+
+### salesInvoices/eInvoice Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| creationDate | DateTime | System | Creation date |
+| status | Enum | | Status of the electronic invoice entry (same enum as `eInvoicingStatus`) |
+| rejectedReason | String | | Reason provided when the entry is rejected |
+| traceParent | String | | Trace parent identifier for distributed tracing |
+| salesInvoice | SalesInvoice | | DATALOADER — fields of the parent SalesInvoice |
+| salesInvoiceId | UUID | | Identifier of the associated sales invoice |
+
+**Posting behaviour:** when `shouldSendViaElectronicInvoicing = true` and `eInvoicingAddressTypeCustomer`, `eInvoicingAddressCustomer` and `regulatoryBillingFramework` are filled, `postSalesInvoice` automatically submits the invoice to the *Plateforme Agréée*. If that submission fails, use `retrySalesInvoiceElectronicSubmission` (see [20-einvoice-fr.md](20-einvoice-fr.md)).
 
 ### Specific to Sales Invoice Documents — Type CREDIT_NOTE
 
@@ -313,6 +355,7 @@ If the query targets `salesInvoices`, then use `lines` to get the details of the
 | unitPrice | Decimal | | Unit price |
 | vatPercentage | Decimal | Read-only | VAT percentage |
 | equivalenceSurchargePercentage | Decimal | Read-only | Surcharge percentage |
+| applyEquivalenceSurcharge | Boolean | | Apply equivalence surcharge on the line (ES). Added 2026-09 |
 | tax | Tax | Read-only | Fields of Tax (DATALOADER) — added 2026-06 |
 | taxId | UUID | Read-only | Tax ID — added 2026-06 |
 | taxTreatmentId | UUID | Read-only | Tax treatment ID — added 2026-06 |

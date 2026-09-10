@@ -351,7 +351,9 @@ For comprehensive insights into making precise modifications to records, check o
 | customerType | BUSINESS, INDIVIDUAL | | Indicates the type of customer | |
 | hasEquivalenceSurcharge | Boolean | | Subject to the equivalence surcharge regime | |
 | specialMention | String | | Default free-text for new invoices, shown on the final invoice | 250 |
-| documentLanguage | ENGLISH, FRENCH, GERMAN, SPANISH | | Language used in sales Document PDF | |
+| documentLanguage | ENGLISH, FRENCH, GERMAN, PORTUGUESE, SPANISH | | Language used in sales Document PDF | |
+| eInvoicingAddressType | String | | 🇫🇷 Electronic invoicing address type: `fr.siren`, `fr.siren_suffix`, `fr.sirensiret`, `fr.sirensiret_routing`. FR only, `customerType = BUSINESS`. Added 2026-09 | |
+| eInvoicingAddress | String | | 🇫🇷 Identifier registered in the electronic invoicing directory, used to route e-invoices to the customer. Added 2026-09 | |
 | defaultPrepaymentAccountingAccount | AccountingAccount | | Prepayment Accounting Account (DATALOADER) | |
 | defaultPrepaymentAccountingAccountId | UUID | | Default Pre Payment Account ID | |
 | **Sales Conditions** | | | | |
@@ -453,6 +455,17 @@ For comprehensive insights into making precise modifications to records, check o
 **specialMention**: Default free-text field defined at customer level, intended to appear on the final invoice. In the application UI, it is automatically pre-filled when creating a new invoice. However, via the API, this value is not automatically assigned: if you want to create an invoice including the customer's mention, you must first retrieve it from the customer entity and then explicitly set it in the specialMention field of the sales invoice.
 
 **documentLanguage**: Applies to section titles and column headers in sales documents PDFs.
+
+**eInvoicingAddressType / eInvoicingAddress** (FR only, added 2026-09): routing data used to deliver electronic invoices to the customer. Available only under FR legislation and for `customerType = BUSINESS`. Both values are copied by default onto the sales invoice (`eInvoicingAddressTypeCustomer` / `eInvoicingAddressCustomer`) when the organization is registered with a *Plateforme Agréée*. Formats:
+
+| Type | Meaning | Example |
+|------|---------|---------|
+| `fr.siren` | SIREN — general address for the whole company | `123456782` |
+| `fr.siren_suffix` | SIREN + suffix — route to a department | `123456782_Accounting` |
+| `fr.sirensiret` | SIREN + SIRET — a specific establishment / branch | `123456782_12345678200001` |
+| `fr.sirensiret_routing` | SIREN + SIRET + routing code — department inside a branch | `123456782_12345678200001_Bakery` |
+
+See [20-einvoice-fr.md](20-einvoice-fr.md) for the full e-invoicing flow.
 
 **defaultPrepaymentAccountingAccountId**: This accounting code is used to post the accounting entry to an advance payment and deposit received account for advance invoices.
 

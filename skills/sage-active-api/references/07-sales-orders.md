@@ -112,9 +112,9 @@ mutation ($values: SalesOrderCreateGLDtoInput!) {
 | operationalNumberPresetTextId | UUID | | ID of the operational number preset text (live since 2026-06) |
 | status | String(15) | | Pending / Closed |
 | socialName | String(50) | Not modifiable after creation | Social Name |
-| contactName | String(50) | | Contact Name |
-| contactPhone | String(15) | | Contact Phone |
-| contactEmail | String(50) | | Contact Email |
+| contactName | String(50) | Read-only | Contact Name — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
+| contactPhone | String(15) | Read-only | Contact Phone — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
+| contactEmail | String(50) | Read-only | Contact Email — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
 | contactJobAreaId | UUID | | Id of the Contact Job Area |
 | countryAcronym | String(2) | | Country Acronym |
 
@@ -138,6 +138,7 @@ mutation ($values: SalesOrderCreateGLDtoInput!) {
 | totalFeeSurcharge | Decimal | | Total equivalence surcharge applied, based on VAT |
 | totalVatFee | Decimal | | VAT amount used as the base for the surcharge |
 | discount | Decimal | | Specific discount applied |
+| hasCashVat | Boolean | | Indicates whether the document is subject to Cash VAT (FR/DE only, default). Added 2026-07 |
 | totalLiquidNoWithholding | Decimal | | Total amount excluding withholding |
 | totalWithholding | Decimal | | Total withholding amount |
 
@@ -241,6 +242,7 @@ If the query targets salesOrders, then use lines to get the details of the lines
 | unitPrice | Decimal | | Unit price |
 | vatPercentage | Decimal | Read-only | VAT percentage |
 | equivalenceSurchargePercentage | Decimal | Read-only | Surcharge percentage |
+| applyEquivalenceSurcharge | Boolean | | Apply equivalence surcharge on the line (ES). Added 2026-09 |
 | tax | Tax | Read-only | Fields of Tax (DATALOADER) — added 2026-06 |
 | taxId | UUID | Read-only | Tax ID — added 2026-06 |
 | taxTreatmentId | UUID | Read-only | Tax treatment ID — added 2026-06 |

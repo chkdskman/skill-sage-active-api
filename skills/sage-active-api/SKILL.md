@@ -4,17 +4,18 @@ description: >
   Complete reference for Sage Active Public API V2 (GraphQL). Use this skill whenever
   constructing GraphQL queries or mutations for Sage Active, working with Sage Active
   entities (customers, suppliers, employees, products, sales documents, purchase documents,
-  accounting entries, accounting accounts), implementing OAuth2 authentication with
-  Sage Active, or needing field definitions, business rules, legislation-specific rules
-  (FR, ES, DE), pagination, filtering, or error handling for the Sage Active API.
+  accounting entries, accounting accounts, fixed assets), implementing OAuth2 authentication
+  with Sage Active, working with French electronic invoicing (facture electronique,
+  Plateforme Agreee), or needing field definitions, business rules, legislation-specific rules
+  (FR, ES, DE, PT), pagination, filtering, or error handling for the Sage Active API.
   Trigger on any mention of "Sage Active", "sage active api", "sage graphql",
   "sage active query", or any Sage Active entity names like customers, salesInvoices,
-  accountingEntries, etc.
+  accountingEntries, fixedAssets, organizationDetail, etc.
 ---
 
 # Sage Active Public API V2 — Skill Reference
 
-A **GraphQL API** built with Hot Chocolate (.NET), available for three legislations: FR (France), ES (Spain), DE (Germany). PT (Portugal) support is being introduced — PT-specific fields are already shipping and `legislationCode` gains `PT` with the upcoming `organizations`/`organizationDetail` split (no public PT endpoint documented yet).
+A **GraphQL API** built with Hot Chocolate (.NET), available for four legislations — FR (France), ES (Spain), DE (Germany), PT (Portugal) — across **three** regional environments: **FR**, **ES/PT** (Spain and Portugal share one Public API) and **DE**.
 
 Official documentation: https://developer.sage.com/sageactive/
 Postman collection: https://developer.sage.com/sageactive/files/Sage%20Active%20Public%20API%20V2.postman_collection.json
@@ -22,12 +23,12 @@ Postman collection: https://developer.sage.com/sageactive/files/Sage%20Active%20
 ## Getting Started (New Project)
 
 To bootstrap a new Sage Active integration:
-1. **Subscribe** to Sage Active for your legislation (FR/ES/DE)
+1. **Subscribe** to Sage Active for your legislation (FR/ES/DE/PT)
 2. **Access Developer Center** from "Your Sage Active"
 3. **Create an app** → get Client ID, Client Secret, Subscription Key
-4. **Configure Solutions** tab (target markets: FR, ES, DE)
+4. **Configure Solutions** tab (target markets: Solution FR, Solution ES/PT, Solution DE)
 5. **Implement OAuth2** — see `references/00-endpoints-auth.md`
-6. **First query**: `userProfile` (no X-OrganizationId needed), then `organizations` to get the X-OrganizationId
+6. **First query**: `userProfile` (no X-OrganizationId needed), then `organizations` to get the X-OrganizationId, then `organizationDetail` for the full configuration
 7. **Architecture**: Backend-only API access, secrets in env vars, cache static data
 
 Read `references/00-endpoints-auth.md` for complete getting started guide with all URLs and auth flows.
@@ -37,7 +38,7 @@ Read `references/00-endpoints-auth.md` for complete getting started guide with a
 | Legislation | GraphQL URL |
 |-------------|-------------|
 | FR | `https://api.fr.active.sage.com/graphql` |
-| ES | `https://api.es.active.sage.com/graphql` |
+| ES / PT | `https://api.es.active.sage.com/graphql` |
 | DE | `https://api.de.active.sage.com/graphql` |
 
 Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/token`
@@ -55,7 +56,7 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | Entity | Query Name | Create Mutation | Update Mutation | Delete Mutation | Reference |
 |--------|-----------|-----------------|-----------------|-----------------|-----------|
 | **Organizations** | `organizations` | — | — | — | 15-reference-data.md |
-| **Organization Detail** | `organizationDetail` (COMING SOON — organizations split) | — | — | — | 15-reference-data.md |
+| **Organization Detail** | `organizationDetail` (full config; `organizations` returns selection fields only) | — | — | — | 15-reference-data.md |
 | **User Profile** | `userProfile` | — | — | — | 15-reference-data.md |
 | **Users** | `users` | — | — | — | 15-reference-data.md |
 | **Customers** | `customers` | `createCustomer` | `updateCustomer` | `deleteCustomer` | 02-customers.md |
@@ -71,6 +72,7 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | **Sales Invoices** | `salesInvoices` / `salesInvoiceLines` | `createSalesInvoice` | `updateSalesInvoice` | `deleteSalesInvoice` | 09-sales-invoices.md |
 | **Close Sales Invoice** | — | `closeSalesInvoice` (action) | — | — | 09-sales-invoices.md |
 | **Post Sales Invoice** | — | `postSalesInvoice` (action) | — | — | 09-sales-invoices.md |
+| **Retry E-Invoice Submission (FR)** | — | `retrySalesInvoiceElectronicSubmission` (action) | — | — | 20-einvoice-fr.md |
 | **Credit Note** | — | `generateCreditNote` (action) | — | — | 10-sales-actions.md |
 | **Document PDF Preview** | `documentPdfPreview` (action) | — | — | — | 10-sales-actions.md |
 | **Document PDF Email** | — | `sendDocumentPdfEmail` (action) | — | — | 10-sales-actions.md |
@@ -83,6 +85,8 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | **Purchase Open Items** | `purchaseInvoiceOpenItems` | — | — | — | 11-purchase-invoices.md |
 | **Purchase Settlement** | — | `createPurchaseOpenItemSettlement` | — | — | 11-purchase-invoices.md |
 | **Accounting Accounts** | `accountingAccounts` | `createAccountingAccount` | `updateAccountingAccount` | `deleteAccountingAccount` | 12-accounting-accounts.md |
+| **Fixed Assets** | `fixedAssets` | `createFixedAsset` | `updateFixedAsset` | `deleteFixedAsset` | 15-reference-data.md |
+| **Fixed Asset Categories** | `fixedAssetCategories` | — | — | — | 15-reference-data.md |
 | **Accounting Entries** | `accountingEntries` / `accountingEntryLines` | `createAccountingEntryUsingCodes` / `createAccountingEntryUsingIds` | `updateAccountingEntry` | `deleteAccountingEntry` | 13-accounting-entries.md |
 | **Trial Balance** | `accountingTrialBalance` (action) | — | — | — | 14-accounting-reports.md |
 | **Third Party Balance** | `accountingThirdPartyBalance` (action) | — | — | — | 14-accounting-reports.md |
@@ -110,6 +114,7 @@ Auth (all): `https://sbcauth.sage.fr/connect/authorize` | Token: `.../connect/to
 | **Org Sales Setup Docs** | `organizationSalesSetupDocsCustomizationByOrgId` | — | — | — | 15-reference-data.md |
 | **Org IRPF Setup (ES)** | `organizationIrpfSetupByOrgId` | — | — | — | 15-reference-data.md |
 | **Org Global Setup (FR)** | `organizationGlobalSetupByOrgId` | — | — | — | 15-reference-data.md |
+| **Org E-Invoice Setup (FR)** | `organizationEInvoiceSetupByOrgId` | — | — | — | 20-einvoice-fr.md |
 | **File Upload** | — | `uploadFileToEntity` (action) | — | — | 16-file-management.md |
 | **File List** | `files` | — | — | — | 16-file-management.md |
 | **File Download** | `fileDownloadById` (action) | — | — | — | 16-file-management.md |
@@ -171,11 +176,12 @@ HTTP 200 with `errors[]` for business errors. HTTP 401 for auth. HTTP 429 for ra
 | `12-accounting-accounts.md` | Chart of accounts, plan master |
 | `13-accounting-entries.md` | Accounting entries (by codes & IDs), sessions |
 | `14-accounting-reports.md` | Trial balance, balance sheet, P&L, third party balance, KPIs |
-| `15-reference-data.md` | Organizations (+ organizationDetail split), users, countries, currencies, taxes, invoice types, banks, bank movements, banking rules, reconcile/unreconcile actions, payment methods, org setup queries (sales/accounting/docs/IRPF/global) |
+| `15-reference-data.md` | Organizations + organizationDetail (split live), users, countries, currencies, taxes, invoice types, fixed assets & categories, banks, bank movements, banking rules, reconcile/unreconcile actions, payment methods, org setup queries (sales/accounting/docs/IRPF/global/e-invoice) |
 | `16-file-management.md` | File upload/download/export, AP automation |
 | `17-aggregations-lists.md` | Aggregation & List catalog/execute |
-| `18-legislation-rules.md` | Consolidated FR/ES/DE rules |
+| `18-legislation-rules.md` | Consolidated FR/ES/DE/PT rules, Cash VAT (FR/DE), legislation-specific feature pages |
 | `19-update-patterns.md` | requestedAction, replaceAll, nested update examples |
+| `20-einvoice-fr.md` | 🇫🇷 Electronic invoicing: org e-invoice setup, customer routing addresses, sales/purchase invoice fields, statuses, retry action |
 
 ## Source Documentation URLs
 
@@ -188,6 +194,9 @@ HTTP 200 with `errors[]` for business errors. HTTP 401 for auth. HTTP 429 for ra
 | FAQ | https://developer.sage.com/sageactive/faq/ |
 | Postman Collection | https://developer.sage.com/sageactive/files/Sage%20Active%20Public%20API%20V2.postman_collection.json |
 | Schema Viewer | https://developer.sage.com/sageactive/resources/schema |
+| Breaking Changes | https://developer.sage.com/sageactive/resources/breakingchanges |
+| Legislation Rules | https://developer.sage.com/sageactive/resources/legislationrules |
+| Environments | https://developer.sage.com/sageactive/concepts/environments |
 
 For any information not covered in these references, consult the live documentation at the URLs above.
 
@@ -195,8 +204,8 @@ For any information not covered in these references, consult the live documentat
 
 This skill is updated to track Sage's monthly releases. See [`CHANGELOG.md`](CHANGELOG.md) for what changed in each release and the **Open items** checklist of features still in COMING SOON state.
 
-**Current Sage release tracked:** 2026-06 ("organizations split (upcoming), setup APIs, and new fields").
+**Current Sage release tracked:** 2026-09 V1 ("e-invoicing for France and new API fields").
 
-> ⚠️ Heads-up for integrators: the next Sage release splits `organizations` (selection fields only) from the new `organizationDetail` query (full configuration). See the Open items section of `CHANGELOG.md` and the migration guide at <https://developer.sage.com/sageactive/resources/organizations_new>.
+> ⚠️ Breaking change already live (2026-07): `organizations` returns only selection fields (`id`, `creationDate`, `modificationDate`, `status`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`). Everything else moved to `organizationDetail` and returns `null` on `organizations`. See [15-reference-data.md](references/15-reference-data.md#organizations) and <https://developer.sage.com/sageactive/resources/breakingchanges>.
 
 When Sage ships a new release, follow the *"How to update this skill"* runbook at the top of `CHANGELOG.md`.

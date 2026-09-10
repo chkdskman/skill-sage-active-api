@@ -29,14 +29,69 @@ Anywhere a field, mutation or query is documented in `references/` but is not ye
 
 ---
 
-## [2026-06] — organizations split (upcoming), setup APIs, and new fields
+## [2026-09 V1] — e-invoicing for France, fixed assets, and new API fields
 
 Source: <https://developer.sage.com/sageactive/?link=last>
-Title: *"organizations split (upcoming), setup APIs, and new fields"*
+Title: *"e-invoicing for France and new API fields"*
+
+### Added (live)
+
+- **🇫🇷 Electronic invoicing (`eInvoice`)** — new dedicated docs page and API surface, FR legislation only. Consolidated in the new [20-einvoice-fr.md](references/20-einvoice-fr.md).
+  - **`organizationEInvoiceSetupByOrgId`** query — registration/connection with the Sage *Plateforme Agréée* (PA): `status` (`Accepted`/`InProgress`/`Failed`), mandate number, company info, authorized user, effective dates, e-reporting toggles, subscription ids, `errorCode`, terms acceptance.
+  - **`retrySalesInvoiceElectronicSubmission`** mutation — resubmit a sales invoice to the PA after a failed submission (`salesInvoiceId` → `id`). Also cross-referenced in [10-sales-actions.md](references/10-sales-actions.md).
+  - `customers.eInvoicingAddressType` / `.eInvoicingAddress` — routing directory identifier (`fr.siren`, `fr.siren_suffix`, `fr.sirensiret`, `fr.sirensiret_routing`). FR + `customerType = BUSINESS`. See [02-customers.md](references/02-customers.md).
+  - `salesInvoices`: `eInvoiceId`, `eInvoicingAddressTypeCustomer`, `eInvoicingAddressCustomer`, `eInvoicingStatus`, `regulatoryBillingFramework` (`B1`/`S1`/`M1`/`B4`/`M4`/`S4`), `shouldSendViaElectronicInvoicing`, `eInvoice[]` (id, creationDate, status, rejectedReason, traceParent, salesInvoiceId). See [09-sales-invoices.md](references/09-sales-invoices.md).
+  - `purchaseInvoices`: `eInvoiceId`, `isEInvoice`, `isEInvoiceCreditNote`, `eInvoicingStatus` + new `status` values `AwaitingDecision`, `Refused`, `PartiallyAccepted`, `Accepted`. See [11-purchase-invoices.md](references/11-purchase-invoices.md).
+  - `postSalesInvoice` now auto-submits to the PA when `shouldSendViaElectronicInvoicing = true` and the routing/framework fields are filled.
+- **`fixedAssets`** resource — full CRUD (`createFixedAsset` / `updateFixedAsset` / `deleteFixedAsset` / `fixedAssets`): code, name, description, purchasedDate, purchasePrice, acquisitionType (`NEW_ASSET`/`EXISTING_ASSET`), currentValue, accumulatedDepreciation, category and four accounting accounts. See [15-reference-data.md](references/15-reference-data.md#fixed-assets).
+- **`fixedAssetCategories`** query — tangible/intangible categories mapped to ledger, depreciation, depreciation expense, current value and losses accounts. See [15-reference-data.md](references/15-reference-data.md#fixed-asset-categories).
+- Sales document **lines** (quotes, orders, delivery notes, invoices): `applyEquivalenceSurcharge` (ES).
+- `accountingEntries` (corrective invoices, ES): `originalInvoiceDate`, `originalInvoiceNumber`.
+- `organizationSalesSetupDocsCustomization.salesReceiptsExportColor` — export colour for receipts (HEX).
+
+### New COMING SOON (revisit next release)
+
+- **`purchaseInvoices.purchaseType`** (`NONE` / `NORMAL` / `SIMPLIFIED`) — `NORMAL` required when the buyer needs VAT deduction; `SIMPLIFIED` for amounts up to €150 incl. VAT.
+- **`purchaseInvoices.pageCount`** (Decimal) — number of pages of the invoice document.
+
+### Notes
+
+- New Sage docs pages picked up in this sync: 📝eInvoice (🇫🇷), 📝Cash VAT (🇫🇷🇩🇪), 📝Equivalence Surcharge (🇪🇸), 📝Withholding Tax (🇪🇸), 🌍Legislation rules, 📝Breaking changes. The last two are now linked from [18-legislation-rules.md](references/18-legislation-rules.md) and `SKILL.md`.
+- **Portugal shares the ES Public API.** Sage documents three environments — FR, **ES/PT**, DE — so a PT organization is reached through `https://api.es.active.sage.com/graphql` and identified by `legislationCode = PT`. Corrected in [00-endpoints-auth.md](references/00-endpoints-auth.md) and `SKILL.md` (previously "no public PT endpoint documented").
+- Postman collection refreshed for September: <https://developer.sage.com/sageactive/files/Sage%20Active%20Public%20API%20V2.postman_collection.json>. Filter tips — `🆕` for new items, `✏️` for changed items, `⚙️` for actions.
+
+---
+
+## [2026-07] — organizations split (LIVE), Cash VAT flag, simplified invoice preset
+
+Source: <https://developer.sage.com/sageactive/?link=last>
+Title: *"organizations split, setup APIs, and new fields"*
+
+### ⚠️ Breaking change — now effective
+
+- **`organizations` / `organizationDetail` split is live.** `organizations` (LIST + READ by id) returns only selection fields: `id`, `creationDate`, `modificationDate`, `status`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`. The full configuration moved to `organizationDetail` (resolved via `X-OrganizationId`). Fields that moved are still queryable on `organizations` but return `null`. [15-reference-data.md](references/15-reference-data.md#organizations) restructured into the two-operation model, with a two-step query example.
+- **`organizations.status`** — new lifecycle enum (`UNDEFINED`, `BLOCKED`, `CANCELLED`, `EXPIRED`, `NO_LICENSE`, `PENDING`, `READY`, `RESET`, `TRANSFERRING`). A usable organization id is returned **only** when `status = READY` **and** `onboardingCompleted = true`; otherwise the API returns an empty GUID.
+- Removed from the schema in 2026-06 (no compatibility break, harmless if still requested): `organizations.allowBlankIdentificationNumbers`, `organizations.useCustomerCodes`, `organizationSalesSetup.allowPostingSalesInvoice`, `organizationSalesSetup.allowPostingPurchaseInvoice`, and `contactEmail`/`contactName`/`contactPhone` on sales delivery note / invoice / order create+update inputs. Dropped from the reference tables where applicable.
+
+### Added (live)
+
+- Sales documents (quotes, orders, delivery notes, invoices): **`hasCashVat`** (read-only) — document subject to Cash VAT. New consolidated section in [18-legislation-rules.md](references/18-legislation-rules.md) covering the org → supplier → document → accounting-entry chain (`vatCriterion`, `hasCashVat`, `isCashVat`). Source: <https://developer.sage.com/sageactive/resources/cashvat>
+- `organizationSalesSetup.nonIdentifiedSalesInvoiceDefaultPresetTextId` (ES, read-only) — default operational number preset text for simplified invoices.
+
+### Promoted from COMING SOON → live
+
+- `organizationDetail` query — was announced as upcoming in the previous entry, now live.
+
+---
+
+## [2026-06] — Organization Sales Setup Docs, IRPF Setup, Global Setup
+
+Source: <https://developer.sage.com/sageactive/?link=last>
+Title: *"Organization Sales Setup Docs, Organization IRPF Setup, Organization Global Setup"* (the `organizations` split was announced here as upcoming and shipped in 2026-07)
 
 ### ⚠️ Upcoming breaking change announced
 
-- **`organizations` / `organizationDetail` split** — in the next Sage release, `organizations` (LIST + READ by id) returns only selection fields (`id`, `creationDate`, `modificationDate`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`). Full configuration moves to a new `organizationDetail` READ query (resolved via `X-OrganizationId`). Fields that move will still be queryable on `organizations` but return `null`. Migration guide: <https://developer.sage.com/sageactive/resources/organizations_new>. Documented with a COMING SOON callout in [15-reference-data.md](references/15-reference-data.md#organizations).
+- **`organizations` / `organizationDetail` split** — in the next Sage release, `organizations` (LIST + READ by id) returns only selection fields (`id`, `creationDate`, `modificationDate`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`). Full configuration moves to a new `organizationDetail` READ query (resolved via `X-OrganizationId`). Fields that move will still be queryable on `organizations` but return `null`. Migration guide: <https://developer.sage.com/sageactive/resources/organizations_new>. **Shipped in the 2026-07 release** — see that entry.
 - The new-method page documents `legislationCode` as `FR, ES, DE or PT` — **Portuguese legislation** support is being introduced (PT-specific fields already shipping, see below).
 
 ### Added (live)
@@ -129,9 +184,8 @@ Title: *"Bank reconciliation documentation refresh and new Sales Invoices capabi
 
 Checklist of all `🚧 COMING SOON` markers currently in `references/`. When Sage promotes any of these, move it to a release entry above and clear its inline marker.
 
-- [ ] **`organizations` / `organizationDetail` split** — announced 2026-06 — [migration guide](https://developer.sage.com/sageactive/resources/organizations_new). When live: `organizations` returns only selection fields (the rest go `null`); full config moves to the new `organizationDetail` query; `legislationCode` gains `PT`. On promotion, restructure the Organizations section of [15-reference-data.md](references/15-reference-data.md) into the two-operation model and re-check whether a PT GraphQL endpoint is published (SKILL.md endpoints table + legislation claims in 00/18).
-
----
+- [ ] **`purchaseInvoices.purchaseType`** (`NONE` / `NORMAL` / `SIMPLIFIED`) — announced 2026-09 — [purchase invoices](https://developer.sage.com/sageactive/resources/purchaseinvoices). On promotion, drop the marker in [11-purchase-invoices.md](references/11-purchase-invoices.md) and check whether it becomes an input on create/update.
+- [ ] **`purchaseInvoices.pageCount`** (Decimal) — announced 2026-09 — number of pages of the invoice document. Same file.
 
 ## How to verify this skill is up to date with the latest Sage release
 

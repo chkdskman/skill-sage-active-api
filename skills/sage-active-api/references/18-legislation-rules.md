@@ -1,8 +1,49 @@
-# Legislation-Specific Rules — FR, ES, DE (Consolidated)
+# Legislation-Specific Rules — FR, ES, DE, PT (Consolidated)
 
 > **Source:** Consolidated from all entity references in this skill.
-> Sage Active supports three legislations: **FR** (France), **ES** (Spain), **DE** (Germany).
-> The legislation is determined by `organizations.legislationCode`.
+> Sage also publishes a single cross-resource page: <https://developer.sage.com/sageactive/resources/legislationrules>
+> Sage Active supports four legislations: **FR** (France), **ES** (Spain), **DE** (Germany), **PT** (Portugal).
+> The legislation is determined by `organizations.legislationCode` (`FR`, `ES`, `DE`, `PT`).
+> **PT runs on the ES/PT environment** — same GraphQL endpoint as Spain (see [00-endpoints-auth.md](00-endpoints-auth.md)). PT-specific fields are documented inline in the entity references (`accountingAccounts.taxonomy`, `organizationDetail.useThirdPartyBilling` / `.thirdPartyBillingName` / `.thirdPartyBillingVatNumber`, `organizationAccountingSetup.defaultFinancialDiscountAccountId`, `organizationSalesSetup.salesReceiptDefaultPresetTextId`, `operationalNumberPresetTexts.operationalNumberSeriesType`).
+
+### Legislation-specific feature pages
+
+| Feature | Legislations | Page |
+|---------|--------------|------|
+| Third Party Identification (SIRENE) | 🇫🇷 | <https://developer.sage.com/sageactive/resources/thirdpartyidentification> |
+| Organization Global Setup (legal mentions) | 🇫🇷 | <https://developer.sage.com/sageactive/resources/organizationglobalsetup> |
+| Organization E-Invoice Setup | 🇫🇷 | <https://developer.sage.com/sageactive/resources/organizationeinvoicesetup> |
+| eInvoice (*facture électronique*) | 🇫🇷 | <https://developer.sage.com/sageactive/resources/einvoice> — see [20-einvoice-fr.md](20-einvoice-fr.md) |
+| Cash VAT (*TVA sur encaissements* / *Ist-Versteuerung*) | 🇫🇷 🇩🇪 | <https://developer.sage.com/sageactive/resources/cashvat> |
+| Equivalence Surcharge (*recargo de equivalencia*) | 🇪🇸 | <https://developer.sage.com/sageactive/resources/equivalencesurcharge> |
+| Simplified Invoice (*factura simplificada*) | 🇪🇸 | <https://developer.sage.com/sageactive/resources/simplifiedinvoices> |
+| Withholding Tax (IRPF) | 🇪🇸 | <https://developer.sage.com/sageactive/resources/withholding> |
+| Organization IRPF Setup | 🇪🇸 | <https://developer.sage.com/sageactive/resources/organizationirpfsetup> |
+| Accounting Entry Sessions | 🇩🇪 | <https://developer.sage.com/sageactive/resources/accountingentrysession> |
+
+---
+
+## 0. Cash VAT (FR / DE)
+
+> Source: <https://developer.sage.com/sageactive/resources/cashvat>
+
+Cash VAT (*TVA sur encaissements* in France, *Ist-Versteuerung* in Germany) is a VAT scheme mainly for service providers: VAT is accounted for when payments are **received**, not when the invoice is issued. Not used under ES or PT legislation.
+
+| Level | Field | Notes |
+|-------|-------|-------|
+| Organization | `organizationDetail.vatCriterion` | Enables Cash VAT for the organization (FR / DE) |
+| Supplier | `suppliers.vatCriterion` | Cash VAT applies to this supplier (used when creating purchase invoices) |
+| Sales documents | `hasCashVat` | Read-only-ish flag on quotes, orders, delivery notes, invoices (**added 2026-07**) |
+| Purchase invoices | `hasCashVat` | Settable on create/update; normally aligned with the supplier's `vatCriterion` |
+| Accounting entries | `accountingEntryInvoice.isCashVat` | Read-only — Cash VAT status of the source invoice at posting time |
+
+End-to-end: enable at organization level → set on the supplier for purchases → `hasCashVat` is derived on documents → `isCashVat` records it on the accounting entry for the VAT return. Via the API, set `hasCashVat` explicitly on purchase invoices; on sales documents rely on the organization/customer configuration or set it per your integration rules before posting.
+
+---
+
+## 0b. Electronic Invoicing (FR)
+
+French e-invoicing (*facture électronique*) is documented in full in **[20-einvoice-fr.md](20-einvoice-fr.md)**: organization registration with the Sage *Plateforme Agréée* (`organizationEInvoiceSetupByOrgId`), customer routing addresses (`eInvoicingAddressType` / `eInvoicingAddress`), sales-invoice sending fields and lifecycle status, purchase-invoice reception fields and status values, and the `retrySalesInvoiceElectronicSubmission` action. All VAT-registered French businesses must be able to **receive** e-invoices from **1 September 2026**.
 
 ---
 

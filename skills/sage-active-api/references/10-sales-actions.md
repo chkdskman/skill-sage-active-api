@@ -4,6 +4,7 @@
 > - https://developer.sage.com/sageactive/resources/generatecreditnote
 > - https://developer.sage.com/sageactive/resources/previewpdf
 > - https://developer.sage.com/sageactive/resources/pdfemail
+> - https://developer.sage.com/sageactive/resources/retrysalesinvoiceelectronicsubmission
 > - https://developer.sage.com/sageactive/resources/salesinvoiceopenitems
 > - https://developer.sage.com/sageactive/resources/salesopenitemsettlement
 > - https://developer.sage.com/sageactive/resources/relatedsalesdocuments
@@ -780,6 +781,23 @@ query($input: DocumentPdfEmailGLDtoInput!) {
 |---|---|---|---|
 | type | `SALES_DELIVERY_NOTE` / `SALES_INVOICE` / `SALES_ORDER` / `SALES_QUOTE` | - | Type of the document sent |
 | id | UUID | - | Unique identifier of the document |
+
+---
+
+## Retry Sales Invoice Electronic Submission (FR only)
+
+> **Source:** <https://developer.sage.com/sageactive/resources/retrysalesinvoiceelectronicsubmission>
+> New action — live since the 2026-09 release. FR legislation only.
+
+`retrySalesInvoiceElectronicSubmission` resubmits a sales invoice to the Sage *Plateforme Agréée* when the automatic submission performed by `postSalesInvoice` failed.
+
+| Method | Operation | Type | Object | DTO |
+|--------|-----------|------|--------|-----|
+| POST | Create | ⚙️ Action (Mutation) | retrySalesInvoiceElectronicSubmission | RetrySalesInvoiceElectronicSubmissionGLDtoInput |
+
+Input: `salesInvoiceId` (UUID, mandatory). Response: `id`.
+
+Full details and the surrounding e-invoicing flow: **[20-einvoice-fr.md](20-einvoice-fr.md)**.
 
 ---
 

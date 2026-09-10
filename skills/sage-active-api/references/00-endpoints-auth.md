@@ -26,7 +26,7 @@ Register your application in the Developer Center to obtain:
 - **Secondary Subscription Key** — Backup key for rotation without downtime
 
 ### Step 4: Configure Solutions
-In the app's Solutions tab, choose which markets your app operates in (FR, ES, DE, or combinations).
+In the app's Solutions tab, choose which markets your app operates in (FR, ES/PT, DE, or combinations).
 
 ### Step 5: Implement OAuth2 Authentication
 See the full OAuth2 flows below. Choose the correct flow for your app type.
@@ -55,10 +55,13 @@ query { organizations { nodes { id socialName legislationCode } } }
 | Legislation | GraphQL API URL |
 |-------------|----------------|
 | **FR** | `https://api.fr.active.sage.com/graphql` |
-| **ES** | `https://api.es.active.sage.com/graphql` |
+| **ES / PT** | `https://api.es.active.sage.com/graphql` |
 | **DE** | `https://api.de.active.sage.com/graphql` |
 
 > In Postman: `baseAddress` = API URL without `/graphql`
+
+> **Three environments, four legislations.** Sage Active runs three regional environments — **FR**, **ES/PT** and **DE**. Spain and Portugal **share the same Public API**, so a PT organization is reached through the ES endpoint and identified by `legislationCode = PT`. In the Developer Center, configure one *Solution* per target market (Solution FR, Solution ES/PT, Solution DE); each has its own API keys, and you need a Sage ID account authorized in each environment your app operates in.
+> Source: <https://developer.sage.com/sageactive/concepts/environments>
 
 ### Authentication URLs (same for all legislations)
 
@@ -76,7 +79,7 @@ query { organizations { nodes { id socialName legislationCode } } }
 | `Authorization` | Always | `Bearer {access_token}` |
 | `x-api-key` | Always | Primary or secondary subscription key |
 | `X-OrganizationId` | Almost always | Organization UUID. NOT needed for: `userProfile`, `organizations`, `localizedEnumValues`, `localizedErrorMessage` |
-| `X-Country-Code` | Optional | Legislation code (`es`, `fr`, `de`) for legislation-context queries |
+| `X-Country-Code` | Optional | Legislation code (`es`, `fr`, `de`, `pt`) for legislation-context queries |
 | `X-TenantId` | **DEPRECATED** | No longer required |
 
 ---

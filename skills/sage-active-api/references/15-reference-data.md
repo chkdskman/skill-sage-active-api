@@ -21,11 +21,17 @@
 > - https://developer.sage.com/sageactive/resources/jobareas
 > - https://developer.sage.com/sageactive/resources/dimensions
 > - https://developer.sage.com/sageactive/resources/transactioncategories
+> - https://developer.sage.com/sageactive/resources/fixedassetcategories
+> - https://developer.sage.com/sageactive/resources/fixedassets
 > - https://developer.sage.com/sageactive/resources/accountingexercises
 > - https://developer.sage.com/sageactive/resources/accountingjournaltypes
 > - https://developer.sage.com/sageactive/resources/thirdpartycodemodesettings
 > - https://developer.sage.com/sageactive/resources/organizationaccountingsetup
 > - https://developer.sage.com/sageactive/resources/organizationsalessetup
+> - https://developer.sage.com/sageactive/resources/organizationsalessetupdocscustomization
+> - https://developer.sage.com/sageactive/resources/organizationirpfsetup
+> - https://developer.sage.com/sageactive/resources/organizationglobalsetup
+> - https://developer.sage.com/sageactive/resources/organizationeinvoicesetup
 > - https://developer.sage.com/sageactive/resources/emailtemplates
 > - https://developer.sage.com/sageactive/resources/operationalnumberpresettexts
 > - https://developer.sage.com/sageactive/resources/getlocalizedenumvalues
@@ -36,19 +42,18 @@
 
 ## Organizations
 
-> 🚧 **COMING SOON — `organizations` / `organizationDetail` split** — announced 2026-06 — [migration guide](https://developer.sage.com/sageactive/resources/organizations_new)
-> In the next Sage release, `organizations` (LIST and READ by id) will return only the reduced set of fields used to select a business: `id`, `creationDate`, `modificationDate`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`.
-> The full organization configuration (identification, tax settings, contacts, addresses, email settings, taxOfficialModels) moves to a new **`organizationDetail`** READ query, resolved for the organization set in `X-OrganizationId`.
-> To limit breaking changes, `organizations` will keep exposing today's fields, but the ones that move to `organizationDetail` will return `null`. If you read any of those fields and use their values, migrate to `organizationDetail` (call it after selecting the organization from the list).
-> Note: on the new method page, `legislationCode` is documented as `FR, ES, DE or PT` — Portuguese legislation support is being introduced.
+> ⚠️ **Breaking change — LIVE since the 2026-07 release.** `organizations` (LIST and READ by id) now returns only the fields used to list and select a business: `id`, `creationDate`, `modificationDate`, `status`, `onboardingCompleted`, `onboardingDateCompleted`, `legislationCode`, `socialName`.
+> The full organization configuration (identification, tax settings, currency, contacts, addresses, taxOfficialModels, email settings) moved to the **`organizationDetail`** READ query, resolved for the organization set in `X-OrganizationId`.
+> To limit breaking changes, `organizations` still exposes the old fields in the schema, **but the ones that moved return `null`**. If you read any of them, call `organizationDetail` after selecting the organization from the list.
+> Source: <https://developer.sage.com/sageactive/resources/organizations> · <https://developer.sage.com/sageactive/resources/breakingchanges>
 
 ### HTTP Operations
 
 | Method | Operation | Type | Object |
 |--------|-----------|------|--------|
-| POST | Read | Query | organizations filtered by id |
-| POST | List | Query | organizations |
-| POST | Read | Query | organizationDetail 🚧 COMING SOON (announced 2026-06) |
+| POST | Read | Query | organizations filtered by id (selection fields only) |
+| POST | List | Query | organizations (selection fields only) |
+| POST | Read | Query | organizationDetail (full configuration, resolved via `X-OrganizationId`) |
 
 ### Description
 
@@ -60,6 +65,17 @@ Organizations is used to get the list of organizations authorized for the curren
 From this list, you can select the desired organization in order to access its data.
 To do so, the list of organizations provides the fields X-OrganizationId and X-TenantId, which must be included in the headers of any request where the data is organization-specific.
 
+Two-step pattern since 2026-07:
+
+```graphql
+# 1. List the businesses the user can access (no X-OrganizationId header)
+query { organizations { nodes { id socialName legislationCode status onboardingCompleted } } }
+
+# 2. Read the full configuration of the selected one (X-OrganizationId: <that id>)
+query { organizationDetail { id documentId vatNumber vatCriterion currencyId
+                             addresses { city zipCode } contacts { name surname } } }
+```
+
 ### Headers
 
 | Key | Value |
@@ -67,22 +83,34 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | Authorization | Bearer {access_token} |
 | x-api-key | Primary or secondary subscription key of your app |
 
-### organizations Fields
+### organizations Fields (selection — LIST / READ by id)
+
+These are the only fields `organizations` returns with a value since 2026-07.
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
 | id | UUID | System | System field that cannot be assigned |
 | creationDate | DateTime | System | Creation date |
 | modificationDate | DateTime | System | Modification date |
-| tenantId | UUID | - | **Deprecated.** Tenant in which the organization is located |
+| status | UNDEFINED, BLOCKED, CANCELLED, EXPIRED, NO_LICENSE, PENDING, READY, RESET, TRANSFERRING | - | **Added 2026-07.** Lifecycle status of the organization — see Info |
 | onboardingCompleted | Boolean | - | Indicates if the onboarding is completed |
 | onboardingDateCompleted | DateTime | - | Date when the onboarding was completed (date-only) |
-| legislationCode | String | - | Compliance with the legislation of the organization |
+| legislationCode | String | - | FR, ES, DE or PT |
 | socialName | String(50) | - | Business name |
+
+> `tenantId` is deprecated and ignored by the API (`X-TenantId` header is no longer used).
+
+### organizationDetail Fields (full configuration)
+
+Read via `organizationDetail`, resolved from the `X-OrganizationId` header — call it **after** selecting the organization from `organizations`. Requires `X-OrganizationId` (unlike `organizations`).
+
+Each of these fields is still declared on `organizations` for schema compatibility, but returns `null` there.
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | System field that cannot be assigned |
 | documentId | String(14) | - | Identification number |
 | documentTypeId | UUID | - | Id document type |
-| allowBlankIdentificationNumbers | Boolean | - | always True |
-| useCustomerCodes | Boolean | - | always True |
 | useWithholdingForSales | Boolean | - | Indicates whether withholding tax is applied on sales |
 | useWithholdingTaxTreatmentId | UUID | - | Tax treatment used for sales withholding tax (added 2026-06) |
 | nafApeCode | String(7) | - | NAF/APE Code |
@@ -105,8 +133,14 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 
 ### Info
 
-- **onboardingCompleted:** Indicates whether the onboarding process for the organization has been fully completed. The API automatically checks this flag before allowing interactions with the organization's data. If the flag is false the organizationId and tenantId will be set to an empty GUID, preventing any use of the organization with the public API.
-- **legislationCode:** FR, ES, or DE (PT is added with the upcoming `organizationDetail` split — the new-method page documents `FR, ES, DE or PT`). This variable can be used if your application needs to work for different legislations, to account for the differences between them. Please note that this cannot be set during the organization creation process as the organization inherits the legislation from the tenant.
+- **status** (added 2026-07): lifecycle status of the organization. The public API returns a usable organization id **only** when `status = READY` **and** `onboardingCompleted = true`; for any other combination the id is an empty GUID and the organization cannot be used.
+  - `PENDING` — still being provisioned / deployed.
+  - `READY` — usable (together with `onboardingCompleted = true`).
+  - `BLOCKED`, `CANCELLED`, `EXPIRED`, `NO_LICENSE` — blocked because of the license or subscription.
+  - `RESET` — the organization has been reset and cannot be used.
+  - `TRANSFERRING`, `UNDEFINED` — not usable.
+- **onboardingCompleted:** Indicates whether the onboarding process for the organization has been fully completed. While onboarding is not finished (`false`), the public API must not be used against that organization — creating or updating data could interfere with the onboarding flow. The API sets the organization id to an empty GUID when `onboardingCompleted = false`, even if `status = READY`.
+- **legislationCode:** FR, ES, DE or PT (PT organizations run on the ES/PT environment — same GraphQL endpoint as ES). This variable can be used if your application needs to work for different legislations, to account for the differences between them. Please note that this cannot be set during the organization creation process as the organization inherits the legislation from the tenant.
 - **documentTypeId:** Id of an allowed document type, values are different depending on legislationCode:
 
 | Country | Allowed document types (code name) |
@@ -124,7 +158,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 - **datevClientNumber:** This field represents the DATEV client identification number. It is assigned to each company registered in DATEV and helps associate accounting entries and financial transactions with the correct organization in the system. Not used (only for German legislation).
 - **taxAuditExportNotes:** This field allows adding specific notes to tax audit exports. These notes can be used to include accounting or regulatory details relevant to the organization when generating export files. Not used (only for German legislation).
 
-### organizations/addresses Fields
+### organizationDetail/addresses Fields
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -145,7 +179,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 
 **Info:** countryIsoCodeAlpha2 - ISO2 country code. This field can be used for creation and serves as a simple alternative to assign the country of the address by using the ISO2 code directly, rather than the country ID in the Countries resource.
 
-### organizations/contacts Fields
+### organizationDetail/contacts Fields
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -163,7 +197,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | phones[] | Array | - | List of phones |
 | socialMedias[] | Array | - | List Social Networking |
 
-### organizations/contacts/emails Fields
+### organizationDetail/contacts/emails Fields
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -174,7 +208,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | usage | Enum | - | Values: EMPTY, INVOICES, NOT_SET, OTHERS, PAYMENTS |
 | isDefault | Boolean | - | Main mail |
 
-### organizations/contacts/phones Fields
+### organizationDetail/contacts/phones Fields
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -185,7 +219,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | type | Enum | - | Values: EMPTY, FAX, LANDLINE, MOBILE, NOT_SET, SKYPE, WHATS_APP |
 | isDefault | Boolean | - | Main phone |
 
-### organizations/contacts/socialMedias Fields
+### organizationDetail/contacts/socialMedias Fields
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -195,7 +229,7 @@ To do so, the list of organizations provides the fields X-OrganizationId and X-T
 | name | String(30) | - | Name |
 | link | String(100) | - | Link |
 
-### organizations/taxOfficialModelsOrganization Fields
+### organizationDetail/taxOfficialModelsOrganization Fields
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
@@ -1973,6 +2007,128 @@ query {
 
 ---
 
+## Fixed Asset Categories
+
+> **Source:** <https://developer.sage.com/sageactive/resources/fixedassetcategories>
+> New resource — live since the 2026-09 release.
+
+### HTTP Operations
+
+| Method | Operation | Type | Object |
+|--------|-----------|------|--------|
+| POST | List | Query | fixedAssetCategories |
+
+### Description
+
+Configuration of accounting fixed asset categories used to classify fixed assets (tangible / intangible) and to map each category to its related accounting accounts.
+
+### Headers
+
+| Key | Value |
+|-----|-------|
+| Authorization | Bearer {access_token} |
+| X-OrganizationId | Current organization Id |
+| x-api-key | Subscription key |
+
+### fixedAssetCategories Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| creationDate | DateTime | System | Creation date |
+| modificationDate | DateTime | System | Modification date |
+| code | String | - | Category code |
+| name | String | - | Category name |
+| type | INTANGIBLE, TANGIBLE | - | Category classification, drives business rules and UI grouping |
+| ledgerAccount | AccountingAccount | - | DATALOADER — fields of AccountingAccount |
+| ledgerAccountId | UUID | - | Id of ledgerAccount |
+| depreciationAccount | AccountingAccount | - | DATALOADER |
+| depreciationAccountId | UUID | - | Id of depreciationAccount |
+| depreciationExpenseAccount | AccountingAccount | - | DATALOADER |
+| depreciationExpenseAccountId | UUID | - | Id of depreciationExpenseAccount |
+| currentValueAccount | AccountingAccount | - | DATALOADER |
+| currentValueAccountId | UUID | - | Id of currentValueAccount |
+| lossesAccount | AccountingAccount | - | DATALOADER |
+| lossesAccountId | UUID | - | Id of lossesAccount |
+
+---
+
+## Fixed Assets
+
+> **Source:** <https://developer.sage.com/sageactive/resources/fixedassets>
+> New resource — live since the 2026-09 release.
+
+### HTTP Operations
+
+| Method | Operation | Type | Object | DTO |
+|--------|-----------|------|--------|-----|
+| POST | Create | Mutation | createFixedAsset | FixedAssetCreateGLDtoInput |
+| POST | Update | Mutation | updateFixedAsset | FixedAssetUpdateGLDtoInput |
+| POST | Delete | Mutation | deleteFixedAsset | FixedAssetDeleteGLDtoInput |
+| POST | Read | Query | fixedAssets filtered by id | |
+| POST | List | Query | fixedAssets | |
+
+### Description
+
+Configuration of accounting fixed assets. Lets you retrieve and manage fixed assets together with their category and related accounting accounts.
+
+### fixedAssets Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| id | UUID | System | Id |
+| creationDate | DateTime | System | Creation date |
+| modificationDate | DateTime | System | Modification date |
+| code | String | Not modifiable after creation | Fixed asset code |
+| name | String | - | Fixed asset name |
+| description | String | - | Fixed asset description |
+| purchasedDate | DateTime | Not modifiable after creation | Purchase date |
+| purchasePrice | Decimal | Not modifiable after creation | Purchase price |
+| acquisitionType | EXISTING_ASSET, NEW_ASSET | - | How the asset was acquired |
+| currentValue | Decimal | Not modifiable after creation | Current value |
+| accumulatedDepreciation | Decimal | Read-only | Accumulated depreciation |
+| fixedAssetCategory | FixedAssetCategory | - | DATALOADER — fields of FixedAssetCategory |
+| fixedAssetCategoryId | UUID | Not modifiable after creation | Id of fixedAssetCategory |
+| ledgerAccount | AccountingAccount | - | DATALOADER |
+| ledgerAccountId | UUID | - | Id of ledgerAccount |
+| depreciationAccount | AccountingAccount | - | DATALOADER |
+| depreciationAccountId | UUID | - | Id of depreciationAccount |
+| depreciationExpenseAccount | AccountingAccount | - | DATALOADER |
+| depreciationExpenseAccountId | UUID | - | Id of depreciationExpenseAccount |
+| currentValueAccount | AccountingAccount | - | DATALOADER |
+| currentValueAccountId | UUID | - | Id of currentValueAccount |
+
+### Info
+
+- **acquisitionType:** `NEW_ASSET` — newly acquired asset. `EXISTING_ASSET` — existing asset already owned.
+- `code`, `purchasedDate`, `purchasePrice`, `currentValue` and `fixedAssetCategoryId` can be assigned at creation but **cannot be modified afterwards**.
+- Account defaults come from the category (`fixedAssetCategories`); the fixed asset can override them.
+- Related setting: `organizationAccountingSetupByOrgId.defaultFixedAssetJournalTypeId` (default fixed asset journal type).
+
+### Example
+
+```graphql
+mutation CreateFixedAsset($input: FixedAssetCreateGLDtoInput!) {
+  createFixedAsset(input: $input) { id code name currentValue }
+}
+```
+
+```json
+{
+  "input": {
+    "code": "FA-0001",
+    "name": "Delivery van",
+    "purchasedDate": "2026-09-01",
+    "purchasePrice": 24000,
+    "currentValue": 24000,
+    "acquisitionType": "NEW_ASSET",
+    "fixedAssetCategoryId": "0f5a...."
+  }
+}
+```
+
+---
+
 ## Accounting Exercises
 
 ### HTTP Operations
@@ -2518,10 +2674,8 @@ query ($id: ID!) {
     salesOrderDefaultPresetTextId
     useSalesTracking
     useVATRatesForDOM
-    allowPostingSalesInvoice
     defaultSalesPostingInvoiceJournalTypeId
     defaultSalesPostingInvoiceSessionId
-    allowPostingPurchaseInvoice
     defaultPurchasePostingInvoiceJournalTypeId
     defaultPurchasePostingInvoiceSessionId
   }
@@ -2548,10 +2702,8 @@ query ($id: ID!) {
       "salesOrderDefaultPresetTextId": "63234567-89ab-cdef-0123-456789abcdef",
       "useSalesTracking": true,
       "useVATRatesForDOM": false,
-      "allowPostingSalesInvoice": true,
       "defaultSalesPostingInvoiceJournalTypeId": "81234567-89ab-cdef-0123-456789abcdef",
       "defaultSalesPostingInvoiceSessionId": "71234567-89ab-cdef-0123-456789abcdef",
-      "allowPostingPurchaseInvoice": false,
       "defaultPurchasePostingInvoiceJournalTypeId": "a1234567-89ab-cdef-0123-456789abcdef",
       "defaultPurchasePostingInvoiceSessionId": "882f7366-8927-49c3-aa01-2162ea3d2439"
     }
@@ -2593,12 +2745,13 @@ query ($id: ID!) {
 |-------|------|----------|-------|
 | askGenerateNonIdentifiedSalesInvoicesByDefault | Boolean | Read-only | When true, simplified invoices are used for individual customers by default. ES only. |
 | nonIdentifiedSalesInvoiceMaxAmount | Decimal | Read-only | Warning limit for simplified invoice amounts (e.g. 400 for the general €400 VAT-included limit). ES only. |
+| nonIdentifiedSalesInvoiceDefaultPresetTextId | UUID | Read-only | Id of the default operational number preset text applied when creating a simplified invoice (*factura simplificada*). ES only. Added 2026-07 |
 
 **Posting Sales Invoices:**
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| allowPostingSalesInvoice | Boolean | - | Allow posting sales invoices |
+| ~~allowPostingSalesInvoice~~ | Boolean | - | **Removed from the schema in 2026-06** (always returned the same value). Still accepted in queries, but drop it from your selection set |
 | defaultSalesPostingInvoiceJournalTypeId | UUID | - | Default journal type ID for sales invoices |
 | defaultSalesPostingInvoiceSessionId | UUID | - | Default session ID for sales invoices |
 
@@ -2606,7 +2759,7 @@ query ($id: ID!) {
 
 | Field | Type | Required | Notes |
 |-------|------|----------|-------|
-| allowPostingPurchaseInvoice | Boolean | - | Allow posting purchase invoices |
+| ~~allowPostingPurchaseInvoice~~ | Boolean | - | **Removed from the schema in 2026-06** (always returned the same value). Still accepted in queries, but drop it from your selection set |
 | defaultPurchasePostingInvoiceJournalTypeId | UUID | - | Default journal type ID for purchase invoices |
 | defaultPurchasePostingInvoiceSessionId | UUID | - | Default session ID for purchase invoices |
 
@@ -2672,6 +2825,7 @@ Returns the sales document customization settings configured for the organizatio
 | salesDeliveryNotesExportColor | String | Export colour for delivery notes (HEX code) |
 | salesInvoicesExportColor | String | Export colour for invoices (HEX code) |
 | salesCreditNotesExportColor | String | Export colour for credit notes (HEX code) |
+| salesReceiptsExportColor | String | Export colour for receipts (HEX code). Added 2026-09 |
 
 **Items table (per document type — Quotes / Orders / Delivery notes / Invoices / Credit notes):**
 
@@ -2751,6 +2905,17 @@ Returns the global setup configured for the organization set in `X-OrganizationI
 | legalMention1 | String(200) | - | Early payment conditions (AAB / BT-22). Default: "Les règlements reçus avant la date d'échéance ne donneront pas lieu à escompte." |
 | legalMention2 | String(200) | - | Late payment conditions (PMD / BT-22). Default: "Tout retard de paiement entraîne l'exigibilité de pénalités calculées sur la base de trois fois le taux d'intérêt légal." |
 | legalMention3 | String(200) | - | Legal fixed compensation for collection costs (PMT / BT-22). Default: "Indemnité forfaitaire pour frais de recouvrement en cas de retard de paiement : 40 €." |
+
+---
+
+## Organization E-Invoice Setup (FR only)
+
+> **Source:** <https://developer.sage.com/sageactive/resources/organizationeinvoicesetup>
+> New query — live since the 2026-09 release. FR legislation only.
+
+`organizationEInvoiceSetupByOrgId` returns the organization's registration and connection details with the Sage *Plateforme Agréée* (PA): `status` (`Accepted` / `InProgress` / `Failed`), mandate number, company information, authorized user, effective dates, e-reporting toggles and subscription identifiers.
+
+`status = Accepted` is the prerequisite for every French e-invoicing flow. **Full field table and flow: [20-einvoice-fr.md](20-einvoice-fr.md).**
 
 ---
 
