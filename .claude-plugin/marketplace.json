@@ -8,8 +8,8 @@
     {
       "name": "sage-active-api",
       "source": "./",
-      "description": "Complete reference for Sage Active Public API V2 (GraphQL). OAuth2 auth, entity references with all fields and business rules, GraphQL patterns, and legislation-specific rules (FR/ES/DE).",
-      "version": "1.0.0",
+      "description": "Complete reference for Sage Active Public API V2 (GraphQL). OAuth2 auth, entity references including fixed assets and French electronic invoicing, GraphQL patterns, and legislation-specific rules (FR/ES/DE/PT).",
+      "version": "1.1.0",
       "author": {
         "name": "Oscar Macia"
       },

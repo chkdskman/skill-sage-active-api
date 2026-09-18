@@ -3,6 +3,13 @@
 This changelog tracks how the **skill** stays in sync with Sage Active Public API V2 releases.
 The canonical Sage release notes live at <https://developer.sage.com/sageactive/?link=last>.
 
+## 2026-09-18 — Plugin 1.1.0 and documentation corrections
+
+- Bumped both Claude plugin manifests to 1.1.0 to distribute the accumulated API reference updates.
+- Corrected the Claude installation command to use the declared marketplace name, `skill-sage-active-api`.
+- Updated README coverage and plugin descriptions for PT, fixed assets, and French electronic invoicing.
+- Clarified that `hasCashVat` is read-only on sales documents and must not be sent in their create/update inputs.
+
 ## 2026-09-17 — Commercial transformations and cleanup
 
 - Verified native Quote → Order → Delivery Note → Invoice origins, related links, partial order quantities and duplicate conversion rejection against the ES API in an authorized test company.

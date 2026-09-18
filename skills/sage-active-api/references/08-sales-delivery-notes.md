@@ -139,7 +139,7 @@ mutation ($values: SalesDeliveryNoteCreateGLDtoInput!) {
 | totalFeeSurcharge | Decimal | — | Total equivalence surcharge applied, based on VAT |
 | totalVatFee | Decimal | — | VAT amount used as the base for the surcharge |
 | discount | Decimal | — | Specific discount applied |
-| hasCashVat | Boolean | — | Indicates whether the document is subject to Cash VAT (FR/DE only, default). Added 2026-07 |
+| hasCashVat | Boolean | Read-only | Indicates whether the document is subject to Cash VAT (FR/DE only). Added 2026-07 |
 | totalLiquidNoWithholding | Decimal | — | Total amount excluding withholding |
 | totalWithholding | Decimal | — | Total withholding amount |
 

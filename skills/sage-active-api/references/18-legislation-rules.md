@@ -33,11 +33,11 @@ Cash VAT (*TVA sur encaissements* in France, *Ist-Versteuerung* in Germany) is a
 |-------|-------|-------|
 | Organization | `organizationDetail.vatCriterion` | Enables Cash VAT for the organization (FR / DE) |
 | Supplier | `suppliers.vatCriterion` | Cash VAT applies to this supplier (used when creating purchase invoices) |
-| Sales documents | `hasCashVat` | Read-only-ish flag on quotes, orders, delivery notes, invoices (**added 2026-07**) |
+| Sales documents | `hasCashVat` | Read-only flag on quotes, orders, delivery notes, invoices (**added 2026-07**) |
 | Purchase invoices | `hasCashVat` | Settable on create/update; normally aligned with the supplier's `vatCriterion` |
 | Accounting entries | `accountingEntryInvoice.isCashVat` | Read-only — Cash VAT status of the source invoice at posting time |
 
-End-to-end: enable at organization level → set on the supplier for purchases → `hasCashVat` is derived on documents → `isCashVat` records it on the accounting entry for the VAT return. Via the API, set `hasCashVat` explicitly on purchase invoices; on sales documents rely on the organization/customer configuration or set it per your integration rules before posting.
+End-to-end: enable at organization level → set on the supplier for purchases → `hasCashVat` is derived on documents → `isCashVat` records it on the accounting entry for the VAT return. Via the API, set `hasCashVat` explicitly on purchase invoices. On sales documents, read the derived value; do not include `hasCashVat` in create or update inputs.
 
 ---
 

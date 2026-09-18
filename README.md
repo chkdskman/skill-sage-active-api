@@ -13,7 +13,7 @@ It is **not** for end users of Sage Active itself. If you only want to use the p
 
 The plugin teaches your agent *how* to call the API. To actually call it you'll need a few things from Sage first — none of this is optional, and none of it is something the agent can do for you:
 
-1. **A Sage Active subscription** in FR, ES, or DE. You need one per country you plan to target.
+1. **A Sage Active subscription** for your target legislation: FR, ES, DE, or PT. Spain and Portugal share the ES/PT API environment.
 2. **Developer access.** From *Your Sage Active*, request access to the **Developer Center**. Sage links the developer account to the email on your subscription.
 3. **Register your company** in the Developer Center (one-time).
 4. **Create an application** and associate it with *Sage Active Public API V2*. You'll get three credentials, all required to call the API:
@@ -32,12 +32,13 @@ Don't have a subscription yet? The Sage Active site has the sign-up flow per cou
 - **OAuth2 authentication** documentation for all 3 app types (web server, mobile/PKCE, SPA)
 - **Complete entity references** with ALL fields, types, constraints, and business rules
 - **GraphQL patterns** — pagination, filtering, sorting, update patterns
-- **Legislation-specific rules** for FR (France), ES (Spain), and DE (Germany)
+- **Legislation-specific rules** for FR (France), ES (Spain), DE (Germany), and PT (Portugal)
+- **French electronic invoicing** with organization setup, customer routing, invoice statuses, and submission retries
 - **Source URLs** for every entity page so agents can check for updated documentation
 
 ## Covered entities
 
-Customers, Suppliers, Employees, Products, Sales Quotes, Sales Orders, Sales Delivery Notes, Sales Invoices, Purchase Invoices, Accounting Accounts, Accounting Entries, Trial Balance, Balance Sheet, P&L, Organizations, Users, Countries, Currencies, Taxes, Bank Accounts, File Management, Aggregations, Lists, KPIs, and more.
+Customers, Suppliers, Employees, Products, Sales Quotes, Sales Orders, Sales Delivery Notes, Sales Invoices, Purchase Invoices, Accounting Accounts, Accounting Entries, Fixed Assets, Fixed Asset Categories, Trial Balance, Balance Sheet, P&L, Organizations, Organization Detail, French Electronic Invoicing, Users, Countries, Currencies, Taxes, Bank Accounts, File Management, Aggregations, Lists, KPIs, and more.
 
 ---
 
@@ -51,10 +52,10 @@ Claude Code installs plugins via marketplaces. This repo ships with its own sing
 
 ```text
 /plugin marketplace add chkdskman/skill-sage-active-api
-/plugin install sage-active-api@chkdskman-skill-sage-active-api
+/plugin install sage-active-api@skill-sage-active-api
 ```
 
-When you add a marketplace via GitHub shorthand (`owner/repo`), Claude Code references it as `owner-repo`. That's why the install command uses `@chkdskman-skill-sage-active-api`, not the `name` field declared inside `marketplace.json`.
+The install command uses the marketplace's `name` from `.claude-plugin/marketplace.json`: `skill-sage-active-api`.
 
 After install, the skill triggers automatically when you mention "Sage Active", "sage api", "sage graphql", or any Sage Active entity name.
 
@@ -133,12 +134,13 @@ in `docs/sage-active/skills/sage-active-api/` before generating code.
 
 - Start with `SKILL.md` for an overview of endpoints, entities, and patterns.
 - Read the specific `references/XX-entity.md` file for the entity you are working with.
-- Check `references/18-legislation-rules.md` for FR/ES/DE differences.
+- Check `references/18-legislation-rules.md` for FR/ES/DE/PT differences.
 - Check `references/19-update-patterns.md` for mutation patterns.
+- Check `references/20-einvoice-fr.md` for French electronic invoicing.
 
 API base URLs:
 - FR: https://api.fr.active.sage.com/graphql
-- ES: https://api.es.active.sage.com/graphql
+- ES / PT: https://api.es.active.sage.com/graphql
 - DE: https://api.de.active.sage.com/graphql
 
 Authentication: OAuth2 (see references/00-endpoints-auth.md)
