@@ -63,7 +63,7 @@ The current working organization's name is displayed in the top right title bar,
 
 Organizations is used to get the list of organizations authorized for the current user (the one authenticated for access to the public API).
 From this list, you can select the desired organization in order to access its data.
-To do so, the list of organizations provides the fields X-OrganizationId and X-TenantId, which must be included in the headers of any request where the data is organization-specific.
+Use the selected organization `id` as the `X-OrganizationId` header for organization-specific requests. `tenantId` / `X-TenantId` are deprecated; they are not required to select an organization. This matches the current field table below.
 
 Two-step pattern since 2026-07:
 
@@ -72,8 +72,9 @@ Two-step pattern since 2026-07:
 query { organizations { nodes { id socialName legislationCode status onboardingCompleted } } }
 
 # 2. Read the full configuration of the selected one (X-OrganizationId: <that id>)
-query { organizationDetail { id documentId vatNumber vatCriterion currencyId
-                             addresses { city zipCode } contacts { name surname } } }
+query { organizationDetail(first: 1) { nodes { id documentId vatNumber vatCriterion currencyId
+                             currency { id code description precision }
+                             addresses { city zipCode } contacts { name surname } } } }
 ```
 
 ### Headers
@@ -101,6 +102,8 @@ These are the only fields `organizations` returns with a value since 2026-07.
 > `tenantId` is deprecated and ignored by the API (`X-TenantId` header is no longer used).
 
 ### organizationDetail Fields (full configuration)
+
+**Verified against ES production on 2026-09-16:** this field returns `OrganizationDetailConnection`, not a direct object. Select fields inside `organizationDetail(first: 1) { nodes { ... } }` and read `data.organizationDetail.nodes`. Direct selections such as `organizationDetail { currency { code } }` fail with HTTP 400. Match the returned node ID to the selected organization.
 
 Read via `organizationDetail`, resolved from the `X-OrganizationId` header — call it **after** selecting the organization from `organizations`. Requires `X-OrganizationId` (unlike `organizations`).
 
@@ -273,6 +276,8 @@ Represents the information about the currently authenticated user within the sys
 | fullName | String | Read-only | User's full name |
 | applicationLanguageCode | String | Read-only | User's language (e.g. en-US) |
 | authenticationEmail | String | Read-only | User's email |
+
+**Verified on ES 2026-09-16:** `userProfile` has no `userId` field. Use `id`; selecting `userId` causes GraphQL HTTP 400. The standard query with `id`, `fullName`, `authenticationEmail` and `applicationLanguageCode` succeeds.
 
 **Info:** applicationLanguageCode - Allows you to know the language preference of the connected user to also localize your application.
 

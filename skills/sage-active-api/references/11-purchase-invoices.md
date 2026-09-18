@@ -265,6 +265,8 @@ query ($fileId: String!) {
 
 ### Fields: purchaseInvoices/openItems
 
+**Verified on ES 2026-09-16:** nested `purchaseInvoices.nodes.openItems` returns `OpenItem`; it has no `purchaseInvoiceId` field. Selecting it causes GraphQL HTTP 400, even for an empty lookup. Use the enclosing invoice `id`. This correction does not remove the field documented for the separate `purchaseInvoiceOpenItems` query.
+
 An Open Item is a financial transaction that allows you to know if it has been fully settled or paid. Each open item includes detailed information such as the total amount, accumulated amount paid, and the payment due date. For a single invoice, there can be as many open items as there are different payment installments.
 
 | Field | Type | Required | Notes |
@@ -279,7 +281,6 @@ An Open Item is a financial transaction that allows you to know if it has been f
 | paymentMean | PaymentMean | | Fields of PaymentMean (DATALOADER) |
 | paymentMeanId | UUID | | Identifier of the payment method used |
 | purchaseInvoice | PurchaseInvoice | | Fields of PurchaseInvoice (DATALOADER) |
-| purchaseInvoiceId | UUID | | Identifier of the associated purchase invoice |
 
 **Status values:**
 - **NOT_SPECIFIED:** No specific payment status has been detailed.

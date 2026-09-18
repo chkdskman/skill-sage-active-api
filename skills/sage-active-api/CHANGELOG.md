@@ -3,6 +3,25 @@
 This changelog tracks how the **skill** stays in sync with Sage Active Public API V2 releases.
 The canonical Sage release notes live at <https://developer.sage.com/sageactive/?link=last>.
 
+## 2026-09-17 — Commercial transformations and cleanup
+
+- Verified native Quote → Order → Delivery Note → Invoice origins, related links, partial order quantities and duplicate conversion rejection against the ES API in an authorized test company.
+- Documented that deleting the target invoice did not reopen its closed delivery note, preventing dependent fixture cleanup. No undocumented reopening operation is suggested.
+- Marked delivery-note status explicitly read-only, consistent with the official resource documentation.
+- Verified catalog selections and pagination for taxGroups, taxes, unitOfMeasurements, paymentMeans, paymentMethods, paymentTerms and accountingExercises. These are live handler/API checks, not UI or LLM end-to-end coverage.
+
+## 2026-09-16 — Assistant capability campaign
+
+- Corrected nested purchase invoice OpenItem fields: purchaseInvoiceId is not selectable there (live ES HTTP 400; corrected lookup succeeds). Kept the separate purchaseInvoiceOpenItems contract unchanged.
+- Documented live ES rejection of userProfile.userId and successful selection of id.
+- Removed the obsolete X-TenantId requirement from the organization selection prose, aligning it with the existing deprecation note.
+- Read-only validation: accountingBalanceSheet and accountingProfitAndLoss examples succeeded on ES for 2026-01-01 through 2026-09-16. No accounting or business mutations were executed for this verification.
+
+## 2026-09-16 — Organization detail response correction
+
+- Corrected organizationDetail examples and response shape: OrganizationDetailConnection with nodes, not a direct object.
+- Verified by a read-only ES production query returning HTTP 200 with organizationDetail.nodes and currency; direct field selection returned HTTP 400.
+
 ## Conventions
 
 ### Inline COMING SOON marker

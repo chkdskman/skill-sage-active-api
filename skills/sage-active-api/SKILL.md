@@ -28,7 +28,7 @@ To bootstrap a new Sage Active integration:
 3. **Create an app** → get Client ID, Client Secret, Subscription Key
 4. **Configure Solutions** tab (target markets: Solution FR, Solution ES/PT, Solution DE)
 5. **Implement OAuth2** — see `references/00-endpoints-auth.md`
-6. **First query**: `userProfile` (no X-OrganizationId needed), then `organizations` to get the X-OrganizationId, then `organizationDetail` for the full configuration
+6. **First query**: `userProfile` (no X-OrganizationId needed), then `organizations` to get the X-OrganizationId, then `organizationDetail(first: 1) { nodes { ... } }` for the full configuration
 7. **Architecture**: Backend-only API access, secrets in env vars, cache static data
 
 Read `references/00-endpoints-auth.md` for complete getting started guide with all URLs and auth flows.

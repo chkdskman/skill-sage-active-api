@@ -438,6 +438,14 @@ When using `originType`, `originId`, and `originLineId` on lines:
 - For Invoice creation from Delivery Notes, there is no notion of `pendingQuantity` on Delivery Note lines. As soon as a Delivery Note line is used, it becomes Completed and cannot be used again for another Invoice
 - The relationship is visible through the RelatedSalesDocument resource
 
+### Verified ES lifecycle caveat (2026-09-17)
+
+An authorized test-company run verified Quote → Order → Delivery Note → Invoice with line origins: native related-document links were created, a partial delivery reduced order pendingQuantity from 5 to 3, and reinvoicing the fully consumed delivery note was rejected.
+
+**Do not assume deleting a target reverses the source lifecycle.** After deleting the generated draft invoice, the source delivery note remained Closed. Deleting it failed with `sales.businessErrors.cannotDeleteSalesDeliveryNoteWithInvalidStatus`. The fully converted quote also remained Closed. Dependent order, quote, product and customer cleanup was then blocked by their relationships. The documented status update actions do not offer reopening of closed delivery notes or quotes. Plan end-to-end tests with retained, explicitly identified QA fixtures or a resettable company; do not promise automatic rollback or retry deletion unchanged.
+
+This is observed ES behavior, not a general guarantee about every document type or release. Read status and related documents before reconciliation.
+
 ### Recommendation
 
 Always use these fields on lines when creating a document that originates from another sales document. Failing to do so will create a standalone document with no traceability and no quantity control against the source document.

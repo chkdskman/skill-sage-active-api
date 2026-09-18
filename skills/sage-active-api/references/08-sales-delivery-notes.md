@@ -111,7 +111,7 @@ mutation ($values: SalesDeliveryNoteCreateGLDtoInput!) {
 | operationalNumber | String (50) | — | Document Number |
 | operationalNumberPresetText | OperationalNumberPresetText | — | DATALOADER — Operational number preset text (live since 2026-06) |
 | operationalNumberPresetTextId | UUID | — | ID of the operational number preset text (live since 2026-06) |
-| status | String (15) | — | Pending or Closed |
+| status | String (15) | Read-only | Pending or Closed; updates use updateDocumentStatus=CLOSE |
 | socialName | String (50) | Not modifiable after creation | Social Name |
 | contactName | String (50) | Read-only | Contact Name — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
 | contactPhone | String (15) | Read-only | Contact Phone — removed from the create/update inputs in 2026-06 (still accepted in payloads, but ignored) |
@@ -331,3 +331,7 @@ Do not use the `addresses[]` array. Instead, use `mainAddress` for the primary a
 - **countryIsoCodeAlpha2**: ISO2 country code. This field can be used for creation and serves as a simple alternative to assign the country of the address by using the ISO2 code directly, rather than the country ID in the Countries resource.
 
 ---
+
+### Verified cleanup limitation (ES, 2026-09-17)
+
+Deleting a generated draft invoice did not reopen its Closed source delivery note. Subsequent `deleteSalesDeliveryNote` was rejected with `cannotDeleteSalesDeliveryNoteWithInvalidStatus`. See the Sales Document Transformation section in [10-sales-actions.md](10-sales-actions.md) for the observed dependency chain and test-fixture retention guidance.
