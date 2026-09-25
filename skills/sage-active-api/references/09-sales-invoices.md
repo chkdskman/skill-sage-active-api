@@ -525,6 +525,12 @@ The CloseSalesInvoice service allows for confirming a sales invoice, meaning its
 
 After closing, the invoice status changes from Pending (Draft) to Closed (Unposted), making it ready for posting and further financial processing.
 
+> **Verified in runtime (ES, 2026-09-24).** Spanish legislation validates the customer, not only the invoice:
+> - `createSalesInvoice` fails with `sales.businessErrors.invalidDocumentId` when the customer has no `documentId` (NIF/DNI/NIE), even though `documentId` is optional on the customer itself.
+> - `closeSalesInvoice` fails with `sales.businessErrors.mainAddressFirstLineMustBeProvidedWhenClosingSalesInvoice`, `...mainAddressCityMustBeProvidedWhenClosingSalesInvoice` and `...mainAddressZipCodeMustBeProvidedWhenClosingSalesInvoice` (and `...mainAddressProvinceMustBeProvidedWhenClosingSalesInvoice`) when the customer's main address lacks `firstLine`, `city`, `zipCode` or `province`.
+> - Deletion by status: draft (`Pending`) invoices **can** be deleted. Closed invoices fail with `sales.businessErrors.cannotDeleteSalesInvoiceWithInvalidStatus`; posted ones also with `...cannotDeleteSalesInvoiceRelatedToAccountingEntries`. Once an invoice is closed, its customer (`customerCannotBeDeletedDueToSalesInvoiceDependencies` / `...AccountingEntryDependencies`) and product (`cannotDeleteProductWithRelatedSalesInvoices`) cannot be deleted either. A closed/posted invoice can only be neutralised with a credit note.
+> - After `postSalesInvoice` the invoice `status` read back as `Closed` in this run, although the accounting entry was created; check the accounting entry rather than relying on `status` alone.
+
 ### Functionality
 
 - **Invoice Confirmation:** Locks the invoice content, preventing further modifications.
