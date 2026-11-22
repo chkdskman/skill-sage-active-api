@@ -1,2 +1,7 @@
 .DS_Store
 .claude/
+
+# Variables de entorno y secretos locales (securityCenter SC-UF-001)
+.env
+.env.*
+!.env.example
